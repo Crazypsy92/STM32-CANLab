@@ -2,9 +2,10 @@
  * @file    bsp_can.c
  * @brief   STM32F103C8T6 板级 CAN1 配置与接口封装。
  */
+#include <stddef.h>
+
 #include "bsp_can.h"
 #include "can_bxcan.h"
-#include <stddef.h>
 #include "stm32f1xx_ll_bus.h"
 #include "stm32f1xx_ll_gpio.h"
 
@@ -129,10 +130,10 @@ can_status_t BSP_CAN_InitWithMode(bsp_can_mode_t mode)
     {
         /* Do not leave the peripheral clock enabled after a failed init. */
         LL_APB1_GRP1_DisableClock(LL_APB1_GRP1_PERIPH_CAN1);
-                        return result;
+        return result;
     }
 
-        return CAN_STATUS_OK;
+    return CAN_STATUS_OK;
 }
 
 /**
@@ -158,7 +159,7 @@ can_status_t BSP_CAN_DeInit(void)
     }
 
     LL_APB1_GRP1_DisableClock(LL_APB1_GRP1_PERIPH_CAN1);
-    
+
     return CAN_STATUS_OK;
 }
 
