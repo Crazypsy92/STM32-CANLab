@@ -1,3 +1,7 @@
+/**
+ * @file    app_can_test.c
+ * @brief   Classical CAN 标准帧/扩展帧、数据帧/远程帧回环测试。
+ */
 #include "app_can_test.h"
 #include "bsp_can.h"
 #include "delay.h"
@@ -10,6 +14,7 @@ static uint8_t s_expected_valid = 0U;
 static uint32_t s_sequence = 0U;
 static uint32_t s_last_tx_tick = 0U;
 
+/** @brief 根据递增序号生成四种 CAN 帧组合。 */
 static can_frame_t make_test_frame(uint32_t sequence)
 {
     can_frame_t frame;
@@ -42,7 +47,7 @@ static can_frame_t make_test_frame(uint32_t sequence)
     }
 
     frame.dlc = (uint8_t)(sequence % 9U);
-    for (i = 0U; i < CAN_FRAME_MAX_DATA_LEN; ++i)
+    for (i = 0U; i < CAN_MAX_DLC; ++i)
     {
         frame.data[i] = (uint8_t)(sequence + ((uint32_t)i * 0x11U));
     }
@@ -50,6 +55,7 @@ static can_frame_t make_test_frame(uint32_t sequence)
     return frame;
 }
 
+/** @brief 比较两帧的 ID、格式、DLC 和有效数据。 */
 static uint8_t frames_match(const can_frame_t *a, const can_frame_t *b)
 {
     uint8_t i;
@@ -76,29 +82,32 @@ static uint8_t frames_match(const can_frame_t *a, const can_frame_t *b)
     return 1U;
 }
 
+/** @brief 更新最近一次发送帧的调试信息。 */
 static void record_tx(const can_frame_t *frame)
 {
     g_can_test_stats.last_tx_id = frame->id;
-    g_can_test_stats.last_tx_ide = (uint8_t)frame->id_type;
-    g_can_test_stats.last_tx_rtr = (uint8_t)frame->frame_type;
+    g_can_test_stats.last_tx_id_type = (uint8_t)frame->id_type;
+    g_can_test_stats.last_tx_frame_type = (uint8_t)frame->frame_type;
     g_can_test_stats.last_tx_dlc = frame->dlc;
 }
 
+/** @brief 更新最近一次接收帧的调试信息。 */
 static void record_rx(const can_frame_t *frame)
 {
     uint8_t i;
 
     g_can_test_stats.last_rx_id = frame->id;
-    g_can_test_stats.last_rx_ide = (uint8_t)frame->id_type;
-    g_can_test_stats.last_rx_rtr = (uint8_t)frame->frame_type;
+    g_can_test_stats.last_rx_id_type = (uint8_t)frame->id_type;
+    g_can_test_stats.last_rx_frame_type = (uint8_t)frame->frame_type;
     g_can_test_stats.last_rx_dlc = frame->dlc;
 
-    for (i = 0U; i < CAN_FRAME_MAX_DATA_LEN; ++i)
+    for (i = 0U; i < CAN_MAX_DLC; ++i)
     {
         g_can_test_stats.last_rx_data[i] = frame->data[i];
     }
 }
 
+/** @brief 清零统计信息并初始化 CAN BSP。 */
 void App_CAN_Test_Init(void)
 {
     can_status_t result;
@@ -113,6 +122,7 @@ void App_CAN_Test_Init(void)
     g_can_test_stats.initialized = (result == CAN_STATUS_OK) ? 1U : 0U;
 }
 
+/** @brief 执行一次轮询测试；每 100 ms 发送一帧并检查接收结果。 */
 void App_CAN_Test_Task(void)
 {
     const uint32_t now = GetTick_ms();
