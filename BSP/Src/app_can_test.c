@@ -112,7 +112,7 @@ void App_CAN_Test_Init(void)
 {
     can_status_t result;
 
-    memset((void *)&g_can_test_stats, 0, sizeof(g_can_test_stats));
+    g_can_test_stats = (app_can_test_stats_t){0};
     s_expected_valid = 0U;
     s_sequence = 0U;
     s_last_tx_tick = GetTick_ms() - 100U;
