@@ -9,12 +9,24 @@
 #include "can_frame.h"
 
 /**
+ * @brief CAN 回环测试应用状态。
+ */
+typedef uint8_t app_can_test_state_t;
+enum
+{
+    APP_CAN_TEST_STATE_RESET = 0U, /**< 尚未初始化。 */
+    APP_CAN_TEST_STATE_INITIALIZING, /**< 正在初始化 CAN。 */
+    APP_CAN_TEST_STATE_RUNNING,      /**< 测试任务正常运行。 */
+    APP_CAN_TEST_STATE_ERROR         /**< 初始化失败，等待重新初始化。 */
+};
+
+/**
  * @brief CAN 回环测试统计信息。
  * @note 全局统计对象声明为 volatile，便于调试器观察主循环更新的测试状态。
  */
 typedef struct
 {
-    uint32_t initialized;              /**< BSP 初始化成功标志。 */
+    app_can_test_state_t state;         /**< 当前测试应用状态。 */
     int32_t init_status;                /**< BSP_CAN_Init() 返回状态。 */
     uint32_t tx_ok;                     /**< 发送成功次数。 */
     uint32_t tx_error;                  /**< 发送失败次数。 */
