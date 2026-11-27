@@ -178,12 +178,24 @@ can_status_t CAN_BxCAN_Init(can_bxcan_t *driver,
         config->bs1_tq < 1U || config->bs1_tq > 16U ||
         config->bs2_tq < 1U || config->bs2_tq > 8U ||
         config->sjw_tq > config->bs2_tq ||
-        config->mode > CAN_BXCAN_MODE_SILENT_LOOPBACK ||
         config->auto_bus_off > 1U ||
         config->auto_retransmit > 1U ||
         config->fifo_locked > 1U)
     {
         return CAN_STATUS_ERROR_PARAM;
+    }
+
+    /* Validate enum values explicitly; do not rely on enum range assumptions. */
+    switch (config->mode)
+    {
+        case CAN_BXCAN_MODE_NORMAL:
+        case CAN_BXCAN_MODE_LOOPBACK:
+        case CAN_BXCAN_MODE_SILENT:
+        case CAN_BXCAN_MODE_SILENT_LOOPBACK:
+            break;
+
+        default:
+            return CAN_STATUS_ERROR_PARAM;
     }
 
     tq_total = 1U + (uint32_t)config->bs1_tq + (uint32_t)config->bs2_tq;
