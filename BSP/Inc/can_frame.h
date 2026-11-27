@@ -16,19 +16,23 @@
 #define CAN_MAX_DLC           (8U)
 
 /** @brief CAN 标识符格式。 */
-typedef enum
+typedef uint8_t can_id_type_t;
+enum
 {
-    CAN_ID_STANDARD = 0, /**< 标准帧标识符，11 bit。 */
+    CAN_ID_STANDARD = 0U, /**< 标准帧标识符，11 bit。 */
     CAN_ID_EXTENDED = 1, /**< 扩展帧标识符，29 bit。 */
     CAN_ID_ANY = 2       /**< 仅用于接收过滤器，表示不限制 IDE 格式。 */
-} can_id_type_t;
+
+};
 
 /** @brief CAN 帧类型。 */
-typedef enum
+typedef uint8_t can_frame_type_t;
+enum
 {
-    CAN_FRAME_DATA = 0,   /**< 数据帧，data[] 携带有效载荷。 */
+    CAN_FRAME_DATA = 0U,   /**< 数据帧，data[] 携带有效载荷。 */
     CAN_FRAME_REMOTE = 1  /**< 远程帧，不携带数据，DLC 表示请求的数据长度。 */
-} can_frame_type_t;
+
+};
 
 /**
  * @brief CAN API 返回状态。
@@ -48,9 +52,10 @@ typedef enum
 } can_status_t;
 
 /** @brief CAN 控制器报告的通用错误类别，与具体控制器寄存器编码无关。 */
-typedef enum
+typedef uint8_t can_error_code_t;
+enum
 {
-    CAN_ERROR_CODE_NONE = 0,          /**< 无错误。 */
+    CAN_ERROR_CODE_NONE = 0U,          /**< 无错误。 */
     CAN_ERROR_CODE_STUFF = 1,         /**< 位填充错误。 */
     CAN_ERROR_CODE_FORM = 2,          /**< 帧格式错误。 */
     CAN_ERROR_CODE_ACK = 3,           /**< ACK 错误。 */
@@ -58,7 +63,8 @@ typedef enum
     CAN_ERROR_CODE_BIT_DOMINANT = 5,  /**< 发送显性位时检测到隐性位。 */
     CAN_ERROR_CODE_CRC = 6,           /**< CRC 错误。 */
     CAN_ERROR_CODE_OTHER = 7          /**< 未分类或控制器特有错误。 */
-} can_error_code_t;
+
+};
 
 /** @brief Classical CAN 帧。 */
 typedef struct
