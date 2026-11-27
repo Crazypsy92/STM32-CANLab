@@ -19,6 +19,13 @@ jobs:
 
       - name: Install ARM GNU toolchain
         run: |
+          # The runner image may include a Microsoft package feed that is not
+          # needed by this firmware build and can intermittently return HTTP 403.
+          for source in /etc/apt/sources.list.d/*; do
+            if [ -f "$source" ] && grep -q 'packages.microsoft.com' "$source"; then
+              sudo rm -f "$source"
+            fi
+          done
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             gcc-arm-none-eabi \
