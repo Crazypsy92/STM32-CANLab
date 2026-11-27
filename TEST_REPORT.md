@@ -11,7 +11,7 @@
 | Protocol ID masks | DONE | `CAN_STD_ID_MASK`, `CAN_EXT_ID_MASK`, `CAN_MAX_DLC` |
 | bxCAN register masks | DONE | CMSIS `*_Pos`, `*_Msk` and named mailbox flag table |
 | Acceptance filter documentation | DONE | `id_mask` semantics and examples in `docs/can_filter_mask.md` |
-| Coding conventions | DONE | `docs/coding_conventions.md` and `.clang-format`
+| Coding conventions | DONE | `docs/coding_conventions.md` and `.clang-format` |
 | ARM GCC Debug build | PASS | GitHub Actions Debug/Release workflow; 7,028 bytes Flash, 1,672 bytes RAM |
 | ARM GCC Release build | PASS | GitHub Actions Debug/Release workflow; 3,840 bytes Flash, 1,672 bytes RAM |
 | Local loopback on STM32F103C8T6 | NOT TESTED | Requires board flashing and debugger observation |
