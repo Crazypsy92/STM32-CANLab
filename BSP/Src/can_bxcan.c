@@ -506,6 +506,34 @@ can_status_t CAN_BxCAN_Receive(can_bxcan_t *driver,
     return CAN_STATUS_OK;
 }
 
+/**
+ * @brief 将 bxCAN LEC 寄存器编码转换为通用 CAN 错误类别。
+ * @param[in] lec bxCAN ESR.LEC 字段。
+ * @return can_error_code_t 通用错误类别。
+ */
+static can_error_code_t decode_last_error(uint32_t lec)
+{
+    switch (lec)
+    {
+        case 0U:
+            return CAN_ERROR_CODE_NONE;
+        case 1U:
+            return CAN_ERROR_CODE_STUFF;
+        case 2U:
+            return CAN_ERROR_CODE_FORM;
+        case 3U:
+            return CAN_ERROR_CODE_ACK;
+        case 4U:
+            return CAN_ERROR_CODE_BIT_RECESSIVE;
+        case 5U:
+            return CAN_ERROR_CODE_BIT_DOMINANT;
+        case 6U:
+            return CAN_ERROR_CODE_CRC;
+        default:
+            return CAN_ERROR_CODE_OTHER;
+    }
+}
+
 /** @brief 读取 TEC、REC、LEC、错误状态和 FIFO0 溢出标志。 */
 can_status_t CAN_BxCAN_GetErrorStatus(can_bxcan_t *driver,
                                       can_error_status_t *status)
@@ -527,8 +555,7 @@ can_status_t CAN_BxCAN_GetErrorStatus(can_bxcan_t *driver,
 
     status->tec = (uint16_t)((esr & CAN_ESR_TEC) >> CAN_ESR_TEC_Pos);
     status->rec = (uint16_t)((esr & CAN_ESR_REC) >> CAN_ESR_REC_Pos);
-    status->last_error_code =
-        (can_error_code_t)((esr & CAN_ESR_LEC) >> CAN_ESR_LEC_Pos);
+    status->last_error_code = decode_last_error((esr & CAN_ESR_LEC) >> CAN_ESR_LEC_Pos);
     status->error_warning = ((esr & CAN_ESR_EWGF) != 0U) ? 1U : 0U;
     status->error_passive = ((esr & CAN_ESR_EPVF) != 0U) ? 1U : 0U;
     status->bus_off = ((esr & CAN_ESR_BOFF) != 0U) ? 1U : 0U;
