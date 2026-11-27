@@ -14,7 +14,7 @@ typedef enum
 
 /* Internal loopback is the initial default; it does not require a transceiver. */
 #ifndef BSP_CAN_DEFAULT_MODE
-#define BSP_CAN_DEFAULT_MODE BSP_CAN_MODE_LOOPBACK
+#define BSP_CAN_DEFAULT_MODE BSP_CAN_MODE_SILENT_LOOPBACK
 #endif
 
 #define BSP_CAN_DEFAULT_BITRATE_HZ 500000U
