@@ -42,7 +42,7 @@ void Timebase_Init(void)
     DWT_CYCCNT  = 0U;
     DWT_CTRL   |= 1U;           /* CYCCNTENA: 启动周期计数 */
 
-    LL_SYSTICK_EnableIT();      /* 打开 SysTick 1ms 中断 */
+    SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk; /* CMSIS: enable 1 ms SysTick interrupt */
 }
 
 /**
