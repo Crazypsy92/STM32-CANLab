@@ -44,8 +44,9 @@ typedef uint8_t can_bxcan_state_t;
 enum
 {
     CAN_BXCAN_STATE_UNINITIALIZED = 0U, /**< 尚未初始化。 */
-    CAN_BXCAN_STATE_INITIALIZING,       /**< 正在执行初始化或停止操作。 */
+    CAN_BXCAN_STATE_INITIALIZING,       /**< 正在执行初始化。 */
     CAN_BXCAN_STATE_READY,              /**< 初始化完成，可以收发。 */
+    CAN_BXCAN_STATE_STOPPING,           /**< 正在停止控制器。 */
     CAN_BXCAN_STATE_STOPPED,            /**< 已停止，允许重新初始化。 */
     CAN_BXCAN_STATE_FAULT               /**< 初始化或停止过程发生故障。 */
 };
@@ -79,6 +80,7 @@ can_status_t CAN_BxCAN_Init(can_bxcan_t *driver,
  * @retval CAN_STATUS_OK 控制器已进入初始化模式。
  * @retval CAN_STATUS_ERROR_STATE 驱动句柄无效或尚未初始化。
  * @retval CAN_STATUS_ERROR_TIMEOUT 控制器未能在超时时间内进入初始化模式。
+ * @note 成功后状态为 STOPPED；超时后状态为 FAULT。
  */
 can_status_t CAN_BxCAN_Stop(can_bxcan_t *driver);
 
