@@ -89,6 +89,7 @@ can_status_t CAN_BxCAN_SetFilter(can_bxcan_t *driver,
  * @retval CAN_STATUS_ERROR_TIMEOUT 发送完成等待超时。
  * @retval CAN_STATUS_ERROR_ARBITRATION 本次发送请求报告仲裁丢失。
  * @note 本接口采用轮询并阻塞等待发送结果；不是异步发送接口。
+ *       当前驱动没有内部互斥锁，多任务或中断环境下调用者必须自行串行化发送请求。
  */
 can_status_t CAN_BxCAN_Transmit(can_bxcan_t *driver,
                                 const can_frame_t *frame,
@@ -103,6 +104,7 @@ can_status_t CAN_BxCAN_Transmit(can_bxcan_t *driver,
  * @retval CAN_STATUS_OK 成功接收到一帧。
  * @retval CAN_STATUS_NO_MESSAGE 非阻塞模式下 FIFO0 当前为空。
  * @retval CAN_STATUS_ERROR_TIMEOUT 阻塞等待超过 timeout_ms。
+ * @note 当前驱动没有内部互斥锁；同一 FIFO0 不应由多个上下文并发读取。
  */
 can_status_t CAN_BxCAN_Receive(can_bxcan_t *driver,
                                can_frame_t *frame,
