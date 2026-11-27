@@ -21,7 +21,7 @@ The CAN transceiver is an external physical-layer component between PB8/PB9 and 
 
 ### Frame and common types
 
-`can_frame.h` contains the shared frame model, protocol ID masks, acceptance-filter description and status types. Public structures and API declarations use Doxygen comments. It has no STM32 header dependency, so application code and future controller backends can use the same frame representation.
+`can_frame.h` contains the shared frame model, protocol ID masks, acceptance-filter description, status types and controller-independent error categories. bxCAN LEC values are translated by the backend instead of being exposed as generic API values. The header has no STM32 dependency, so application code and future controller backends can use the same frame representation.
 
 - `id_type`: standard 11-bit or extended 29-bit.
 - `frame_type`: data or remote.
