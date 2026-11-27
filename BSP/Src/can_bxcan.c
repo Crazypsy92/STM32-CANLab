@@ -31,6 +31,7 @@ static const can_bxcan_tx_flags_t s_tx_flags[3] =
     {CAN_TSR_TME2, CAN_TSR_RQCP2, CAN_TSR_TXOK2, CAN_TSR_ALST2, CAN_TSR_TERR2, CAN_TSR_ABRQ2}
 };
 
+/** @brief 检查驱动句柄是否有效且处于 READY 状态。 */
 static uint8_t driver_is_ready(const can_bxcan_t *driver)
 {
     return (driver != NULL && driver->instance != NULL &&
