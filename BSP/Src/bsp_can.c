@@ -1,18 +1,27 @@
+/**
+ * @file    bsp_can.c
+ * @brief   STM32F103C8T6 板级 CAN1 配置与接口封装。
+ */
 #include "bsp_can.h"
 #include "can_bxcan.h"
 #include <stddef.h>
 #include "stm32f1xx_ll_bus.h"
 #include "stm32f1xx_ll_gpio.h"
 
-#define BSP_CAN_PCLK1_HZ       36000000U
-#define BSP_CAN_PRESCALER      4U
-#define BSP_CAN_SJW_TQ         1U
-#define BSP_CAN_BS1_TQ         13U
-#define BSP_CAN_BS2_TQ         4U
+/*
+ * HSE=8 MHz, SYSCLK=72 MHz, APB1 divider=2, PCLK1=36 MHz.
+ * Bitrate = 36 MHz / (4 * (1 + 13 + 4)) = 500 kbit/s.
+ */
+#define BSP_CAN_PCLK1_HZ       (36000000U)
+#define BSP_CAN_PRESCALER      (4U)
+#define BSP_CAN_SJW_TQ         (1U)
+#define BSP_CAN_BS1_TQ         (13U)
+#define BSP_CAN_BS2_TQ         (4U)
 
 static can_bxcan_t s_can1;
 static uint8_t s_initialized = 0U;
 
+/** @brief 将 BSP 工作模式映射为 bxCAN 后端模式。 */
 static can_status_t map_mode(bsp_can_mode_t mode, can_bxcan_mode_t *mapped)
 {
     if (mapped == NULL)
@@ -41,6 +50,7 @@ static can_status_t map_mode(bsp_can_mode_t mode, can_bxcan_mode_t *mapped)
     return CAN_STATUS_OK;
 }
 
+/** @brief 配置 CAN1 部分重映射 2：PB8=RX、PB9=TX，并保留 SWD。 */
 static void configure_can_pins(void)
 {
     LL_GPIO_InitTypeDef tx = {0};
@@ -70,11 +80,13 @@ static void configure_can_pins(void)
     LL_GPIO_Init(GPIOB, &rx);
 }
 
+/** @brief 使用板级默认模式初始化 CAN1。 */
 can_status_t BSP_CAN_Init(void)
 {
     return BSP_CAN_InitWithMode(BSP_CAN_DEFAULT_MODE);
 }
 
+/** @brief 使用指定工作模式和板级固定波特率初始化 CAN1。 */
 can_status_t BSP_CAN_InitWithMode(bsp_can_mode_t mode)
 {
     can_bxcan_config_t config;
@@ -89,7 +101,12 @@ can_status_t BSP_CAN_InitWithMode(bsp_can_mode_t mode)
 
     if (s_initialized != 0U)
     {
-        (void)CAN_BxCAN_DeInit(&s_can1);
+        result = CAN_BxCAN_DeInit(&s_can1);
+        if (result != CAN_STATUS_OK)
+        {
+            return result;
+        }
+
         s_initialized = 0U;
     }
 
@@ -115,6 +132,7 @@ can_status_t BSP_CAN_InitWithMode(bsp_can_mode_t mode)
     return result;
 }
 
+/** @brief 请求 CAN1 进入初始化模式。 */
 can_status_t BSP_CAN_DeInit(void)
 {
     can_status_t result;
@@ -132,6 +150,7 @@ can_status_t BSP_CAN_DeInit(void)
     return result;
 }
 
+/** @brief 通过 bxCAN 发送一帧报文。 */
 can_status_t BSP_CAN_Transmit(const can_frame_t *frame, uint32_t timeout_ms)
 {
     if (s_initialized == 0U)
@@ -141,6 +160,7 @@ can_status_t BSP_CAN_Transmit(const can_frame_t *frame, uint32_t timeout_ms)
     return CAN_BxCAN_Transmit(&s_can1, frame, timeout_ms);
 }
 
+/** @brief 从 bxCAN FIFO0 读取一帧报文。 */
 can_status_t BSP_CAN_Receive(can_frame_t *frame, uint32_t timeout_ms)
 {
     if (s_initialized == 0U)
@@ -150,6 +170,7 @@ can_status_t BSP_CAN_Receive(can_frame_t *frame, uint32_t timeout_ms)
     return CAN_BxCAN_Receive(&s_can1, frame, timeout_ms);
 }
 
+/** @brief 设置当前板级 CAN 接收过滤器。 */
 can_status_t BSP_CAN_SetFilter(const can_filter_t *filter)
 {
     if (s_initialized == 0U)
@@ -159,6 +180,7 @@ can_status_t BSP_CAN_SetFilter(const can_filter_t *filter)
     return CAN_BxCAN_SetFilter(&s_can1, filter);
 }
 
+/** @brief 读取 CAN 控制器错误状态。 */
 can_status_t BSP_CAN_GetErrorStatus(can_error_status_t *status)
 {
     if (s_initialized == 0U)
@@ -168,6 +190,22 @@ can_status_t BSP_CAN_GetErrorStatus(can_error_status_t *status)
     return CAN_BxCAN_GetErrorStatus(&s_can1, status);
 }
 
+/** @brief 获取当前板级 CAN 波特率。 */
+/**
+ * @brief 清除 CAN FIFO0 溢出标志。
+ * @return can_status_t 操作结果。
+ */
+can_status_t BSP_CAN_ClearFifo0Overrun(void)
+{
+    if (s_initialized == 0U)
+    {
+        return CAN_STATUS_ERROR_STATE;
+    }
+
+    return CAN_BxCAN_ClearFifo0Overrun(&s_can1);
+}
+
+/** @brief 获取当前板级 CAN 波特率。 */
 uint32_t BSP_CAN_GetBitrate(void)
 {
     return BSP_CAN_DEFAULT_BITRATE_HZ;
