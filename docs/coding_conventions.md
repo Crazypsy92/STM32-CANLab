@@ -48,7 +48,7 @@ Example: standard ID `0x120`, mask `0x7F0` accepts IDs `0x120` through `0x12F`.
 
 ## 5. Layering and portability
 
-- `can_frame.h` contains protocol-level types and must not include MCU headers.
+- `can_frame.h` contains protocol-level types and controller-independent error categories; it must not expose peripheral register encodings or include MCU headers.
 - `can_bxcan.*` is STM32 bxCAN-specific and may include CMSIS device definitions.
 - `bsp_can.*` owns board-specific clocks, pins and bit timing.
 - `app_can_test.*` demonstrates use of the BSP; it must not access peripheral registers.
