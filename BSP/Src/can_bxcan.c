@@ -283,7 +283,7 @@ can_status_t CAN_BxCAN_Stop(can_bxcan_t *driver)
         return CAN_STATUS_ERROR_STATE;
     }
 
-    driver->state = CAN_BXCAN_STATE_INITIALIZING;
+    driver->state = CAN_BXCAN_STATE_STOPPING;
     driver->instance->IER = 0U;
     driver->instance->MCR |= CAN_MCR_INRQ;
 
@@ -541,7 +541,7 @@ static can_error_code_t decode_last_error(uint32_t lec)
         case 6U:
             return CAN_ERROR_CODE_CRC;
         default:
-            return CAN_ERROR_CODE_OTHER;
+            return CAN_ERROR_CODE_NOT_REPORTED;
     }
 }
 
