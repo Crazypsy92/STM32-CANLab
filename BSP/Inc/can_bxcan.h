@@ -62,11 +62,11 @@ can_status_t CAN_BxCAN_Init(can_bxcan_t *driver,
                             const can_bxcan_config_t *config);
 
 /**
- * @brief 将 bxCAN 控制器切换到初始化模式。
+ * @brief 停止 bxCAN 控制器并请求进入初始化模式。
  * @param[in,out] driver 已初始化的驱动句柄。
  * @return can_status_t 操作结果。
  */
-can_status_t CAN_BxCAN_DeInit(can_bxcan_t *driver);
+can_status_t CAN_BxCAN_Stop(can_bxcan_t *driver);
 
 /**
  * @brief 配置 bxCAN Filter Bank 0 的 32 位 ID 掩码过滤器。
