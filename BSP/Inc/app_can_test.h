@@ -10,7 +10,7 @@
 
 /**
  * @brief CAN 回环测试统计信息。
- * @note 所有成员均为 volatile，便于调试器观察主循环更新的测试状态。
+ * @note 全局统计对象声明为 volatile，便于调试器观察主循环更新的测试状态。
  */
 typedef struct
 {
@@ -39,7 +39,7 @@ typedef struct
 } app_can_test_stats_t;
 
 /** @brief CAN 回环测试统计信息，全局调试器观察入口。 */
-extern app_can_test_stats_t g_can_test_stats;
+extern volatile app_can_test_stats_t g_can_test_stats;
 
 /**
  * @brief 初始化 CAN 回环测试。
