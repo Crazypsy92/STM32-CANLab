@@ -7,8 +7,8 @@
 | Repository initialization | DONE | STM32-CANLab repository created |
 | Project skeleton migration | DONE | Source files copied from stm32f103-at24xx-i2c-bus and renamed |
 | CAN frame model and bxCAN BSP | DONE | BSP headers and sources committed |
-| ARM GCC Debug build | PASS | GitHub Actions run #6; 6,880 bytes Flash, 1,672 bytes RAM |
-| ARM GCC Release build | PASS | GitHub Actions run #6; 3,668 bytes Flash, 1,672 bytes RAM |
+| ARM GCC Debug build | PASS | GitHub Actions Debug/Release workflow; 6,880 bytes Flash, 1,672 bytes RAM |
+| ARM GCC Release build | PASS | GitHub Actions Debug/Release workflow; 3,668 bytes Flash, 1,672 bytes RAM |
 | Local loopback on STM32F103C8T6 | NOT TESTED | Requires board flashing and debugger observation |
 | Physical CAN bus | NOT TESTED | Requires transceiver and a second active CAN node |
 | CANH/CANL signal and termination | NOT TESTED | Requires physical bus measurement |
@@ -19,7 +19,7 @@ The repository's GitHub Actions workflow successfully configured and built both 
 
 ## First hardware acceptance
 
-Use the default loopback mode and inspect `g_can_test_stats`:
+Use the default silent internal loopback mode and inspect `g_can_test_stats`:
 
 - `initialized == 1`
 - `tx_ok` increases
