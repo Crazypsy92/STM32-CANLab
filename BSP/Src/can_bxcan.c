@@ -1,3 +1,8 @@
+/**
+ * @file    can_bxcan.c
+ * @brief   STM32 bxCAN 寄存器级驱动实现。
+ * @details 寄存器字段使用 CMSIS 设备头文件提供的位掩码和位偏移定义。
+ */
 #include "can_bxcan.h"
 #include "delay.h"
 #include <stddef.h>
@@ -26,6 +31,7 @@ static const can_bxcan_tx_flags_t s_tx_flags[3] =
     {CAN_TSR_TME2, CAN_TSR_RQCP2, CAN_TSR_TXOK2, CAN_TSR_ALST2, CAN_TSR_TERR2, CAN_TSR_ABRQ2}
 };
 
+/** @brief 在超时时间内等待寄存器掩码达到指定状态。 */
 static can_status_t wait_register_bit(volatile uint32_t *reg,
                                       uint32_t mask,
                                       uint8_t expected_set,
@@ -66,6 +72,7 @@ static uint32_t encode_filter_id(uint32_t id, can_id_type_t type)
     return 0U;
 }
 
+/** @brief 配置 Filter Bank 0 的 32 位 ID 掩码过滤器。 */
 static can_status_t set_filter_internal(CAN_TypeDef *can,
                                         const can_filter_t *filter)
 {
@@ -123,6 +130,7 @@ static can_status_t set_filter_internal(CAN_TypeDef *can,
     return CAN_STATUS_OK;
 }
 
+/** @brief 检查帧 ID、帧类型和 DLC 是否符合 Classical CAN 约束。 */
 static uint8_t validate_frame(const can_frame_t *frame)
 {
     if (frame == NULL || frame->dlc > CAN_MAX_DLC)
@@ -149,6 +157,7 @@ static uint8_t validate_frame(const can_frame_t *frame)
     return 0U;
 }
 
+/** @brief 初始化 bxCAN 控制器、位时序和默认接收过滤器。 */
 can_status_t CAN_BxCAN_Init(can_bxcan_t *driver,
                             CAN_TypeDef *instance,
                             const can_bxcan_config_t *config)
@@ -246,6 +255,7 @@ can_status_t CAN_BxCAN_Init(can_bxcan_t *driver,
     return CAN_STATUS_OK;
 }
 
+/** @brief 请求 bxCAN 进入初始化模式。 */
 can_status_t CAN_BxCAN_DeInit(can_bxcan_t *driver)
 {
     if (driver == NULL || driver->instance == NULL || driver->initialized == 0U)
@@ -265,6 +275,7 @@ can_status_t CAN_BxCAN_DeInit(can_bxcan_t *driver)
     return CAN_STATUS_OK;
 }
 
+/** @brief 更新 bxCAN Filter Bank 0 的接收条件。 */
 can_status_t CAN_BxCAN_SetFilter(can_bxcan_t *driver,
                                  const can_filter_t *filter)
 {
@@ -276,6 +287,7 @@ can_status_t CAN_BxCAN_SetFilter(can_bxcan_t *driver,
     return set_filter_internal(driver->instance, filter);
 }
 
+/** @brief 轮询可用发送邮箱并等待本次发送请求完成。 */
 can_status_t CAN_BxCAN_Transmit(can_bxcan_t *driver,
                                 const can_frame_t *frame,
                                 uint32_t timeout_ms)
@@ -312,11 +324,11 @@ can_status_t CAN_BxCAN_Transmit(can_bxcan_t *driver,
     }
 
     tsr = can->TSR;
-    if ((tsr & CAN_TSR_TME0) != 0U)
+    if ((tsr & s_tx_flags[0].tme) != 0U)
     {
         mailbox_index = 0U;
     }
-    else if ((tsr & CAN_TSR_TME1) != 0U)
+    else if ((tsr & s_tx_flags[1].tme) != 0U)
     {
         mailbox_index = 1U;
     }
@@ -362,7 +374,7 @@ can_status_t CAN_BxCAN_Transmit(can_bxcan_t *driver,
 
     if (frame->frame_type == CAN_FRAME_REMOTE)
     {
-        tir |= CAN_RI0R_RTR;
+        tir |= CAN_TI0R_RTR;
     }
 
     mailbox->TIR = tir | CAN_TI0R_TXRQ;
@@ -395,6 +407,7 @@ can_status_t CAN_BxCAN_Transmit(can_bxcan_t *driver,
     return CAN_STATUS_ERROR_TX;
 }
 
+/** @brief 从 FIFO0 读取一帧并解码为通用 CAN 帧结构。 */
 can_status_t CAN_BxCAN_Receive(can_bxcan_t *driver,
                                can_frame_t *frame,
                                uint32_t timeout_ms)
@@ -482,6 +495,7 @@ can_status_t CAN_BxCAN_Receive(can_bxcan_t *driver,
     return CAN_STATUS_OK;
 }
 
+/** @brief 读取 TEC、REC、LEC、错误状态和 FIFO0 溢出标志。 */
 can_status_t CAN_BxCAN_GetErrorStatus(can_bxcan_t *driver,
                                       can_error_status_t *status)
 {
@@ -500,8 +514,8 @@ can_status_t CAN_BxCAN_GetErrorStatus(can_bxcan_t *driver,
     esr = driver->instance->ESR;
     rf0r = driver->instance->RF0R;
 
-    status->tec = (uint16_t)((esr & CAN_ESR_TEC) >> 16U);
-    status->rec = (uint16_t)((esr & CAN_ESR_REC) >> 24U);
+    status->tec = (uint16_t)((esr & CAN_ESR_TEC) >> CAN_ESR_TEC_Pos);
+    status->rec = (uint16_t)((esr & CAN_ESR_REC) >> CAN_ESR_REC_Pos);
     status->last_error_code =
         (can_error_code_t)((esr & CAN_ESR_LEC) >> CAN_ESR_LEC_Pos);
     status->error_warning = ((esr & CAN_ESR_EWGF) != 0U) ? 1U : 0U;
