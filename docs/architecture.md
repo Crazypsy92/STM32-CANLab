@@ -21,12 +21,13 @@ The CAN transceiver is an external physical-layer component between PB8/PB9 and 
 
 ### Frame and common types
 
-`can_frame.h` contains the shared frame model and status types. It has no STM32 header dependency, so application code and future controller backends can use the same frame representation.
+`can_frame.h` contains the shared frame model, protocol ID masks, acceptance-filter description and status types. Public structures and API declarations use Doxygen comments. It has no STM32 header dependency, so application code and future controller backends can use the same frame representation.
 
 - `id_type`: standard 11-bit or extended 29-bit.
 - `frame_type`: data or remote.
 - `dlc`: 0..8 for Classical CAN.
-- `data[8]`: meaningful for data frames; remote frames carry no data field.
+- `data[CAN_MAX_DLC]`: meaningful for data frames; remote frames carry no data field.
+- `CAN_STD_ID_MASK` / `CAN_EXT_ID_MASK`: named masks for validating 11-bit and 29-bit identifiers.
 
 ### Controller backend
 
@@ -44,7 +45,7 @@ The CAN transceiver is an external physical-layer component between PB8/PB9 and 
 
 - CAN1 only.
 - FIFO0 receive path only.
-- Filter bank 0 only, 32-bit mask mode.
+- Filter bank 0 only, 32-bit ID-mask mode. `id_mask` uses 1=compare and 0=don't care.
 - Polling TX/RX; no CAN interrupts yet.
 - Classical CAN only; no CAN FD.
 - Initial bit timing assumes HSE=8 MHz, SYSCLK=72 MHz and PCLK1=36 MHz.
