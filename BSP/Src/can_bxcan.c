@@ -31,6 +31,12 @@ static const can_bxcan_tx_flags_t s_tx_flags[3] =
     {CAN_TSR_TME2, CAN_TSR_RQCP2, CAN_TSR_TXOK2, CAN_TSR_ALST2, CAN_TSR_TERR2, CAN_TSR_ABRQ2}
 };
 
+static uint8_t driver_is_ready(const can_bxcan_t *driver)
+{
+    return (driver != NULL && driver->instance != NULL &&
+            driver->state == CAN_BXCAN_STATE_READY) ? 1U : 0U;
+}
+
 /** @brief 在超时时间内等待寄存器掩码达到指定状态。 */
 static can_status_t wait_register_bit(volatile uint32_t *reg,
                                       uint32_t mask,
@@ -207,11 +213,12 @@ can_status_t CAN_BxCAN_Init(can_bxcan_t *driver,
     }
 
     driver->instance = instance;
-    driver->initialized = 0U;
+    driver->state = CAN_BXCAN_STATE_INITIALIZING;
 
     instance->MCR |= CAN_MCR_INRQ;
     if (wait_register_bit(&instance->MSR, CAN_MSR_INAK, 1U, 10U) != CAN_STATUS_OK)
     {
+        driver->state = CAN_BXCAN_STATE_FAULT;
         return CAN_STATUS_ERROR_TIMEOUT;
     }
 
@@ -253,36 +260,40 @@ can_status_t CAN_BxCAN_Init(can_bxcan_t *driver,
 
     if (set_filter_internal(instance, &accept_all) != CAN_STATUS_OK)
     {
+        driver->state = CAN_BXCAN_STATE_FAULT;
         return CAN_STATUS_ERROR_STATE;
     }
 
     instance->MCR &= ~CAN_MCR_INRQ;
     if (wait_register_bit(&instance->MSR, CAN_MSR_INAK, 0U, 10U) != CAN_STATUS_OK)
     {
+        driver->state = CAN_BXCAN_STATE_FAULT;
         return CAN_STATUS_ERROR_TIMEOUT;
     }
 
-    driver->initialized = 1U;
+    driver->state = CAN_BXCAN_STATE_READY;
     return CAN_STATUS_OK;
 }
 
 /** @brief 停止 bxCAN 控制器并请求进入初始化模式。 */
 can_status_t CAN_BxCAN_Stop(can_bxcan_t *driver)
 {
-    if (driver == NULL || driver->instance == NULL || driver->initialized == 0U)
+    if (driver_is_ready(driver) == 0U)
     {
         return CAN_STATUS_ERROR_STATE;
     }
 
+    driver->state = CAN_BXCAN_STATE_INITIALIZING;
     driver->instance->IER = 0U;
     driver->instance->MCR |= CAN_MCR_INRQ;
 
     if (wait_register_bit(&driver->instance->MSR, CAN_MSR_INAK, 1U, 10U) != CAN_STATUS_OK)
     {
+        driver->state = CAN_BXCAN_STATE_FAULT;
         return CAN_STATUS_ERROR_TIMEOUT;
     }
 
-    driver->initialized = 0U;
+    driver->state = CAN_BXCAN_STATE_STOPPED;
     return CAN_STATUS_OK;
 }
 
@@ -290,7 +301,7 @@ can_status_t CAN_BxCAN_Stop(can_bxcan_t *driver)
 can_status_t CAN_BxCAN_SetFilter(can_bxcan_t *driver,
                                  const can_filter_t *filter)
 {
-    if (driver == NULL || driver->instance == NULL || driver->initialized == 0U)
+    if (driver_is_ready(driver) == 0U)
     {
         return CAN_STATUS_ERROR_STATE;
     }
@@ -314,7 +325,7 @@ can_status_t CAN_BxCAN_Transmit(can_bxcan_t *driver,
     uint8_t mailbox_index;
     uint8_t i;
 
-    if (driver == NULL || driver->instance == NULL || driver->initialized == 0U)
+    if (driver_is_ready(driver) == 0U)
     {
         return CAN_STATUS_ERROR_STATE;
     }
@@ -432,7 +443,7 @@ can_status_t CAN_BxCAN_Receive(can_bxcan_t *driver,
     uint32_t high;
     uint8_t i;
 
-    if (driver == NULL || driver->instance == NULL || driver->initialized == 0U)
+    if (driver_is_ready(driver) == 0U)
     {
         return CAN_STATUS_ERROR_STATE;
     }
@@ -541,7 +552,7 @@ can_status_t CAN_BxCAN_GetErrorStatus(can_bxcan_t *driver,
     uint32_t esr;
     uint32_t rf0r;
 
-    if (driver == NULL || driver->instance == NULL || driver->initialized == 0U)
+    if (driver_is_ready(driver) == 0U)
     {
         return CAN_STATUS_ERROR_STATE;
     }
@@ -571,7 +582,7 @@ can_status_t CAN_BxCAN_GetErrorStatus(can_bxcan_t *driver,
  */
 can_status_t CAN_BxCAN_ClearFifo0Overrun(can_bxcan_t *driver)
 {
-    if ((driver == NULL) || (driver->instance == NULL) || (driver->initialized == 0U))
+    if (driver_is_ready(driver) == 0U)
     {
         return CAN_STATUS_ERROR_STATE;
     }
