@@ -126,11 +126,26 @@ can_status_t BSP_CAN_InitWithMode(bsp_can_mode_t mode)
     config.fifo_locked = 1U;
 
     result = CAN_BxCAN_Init(&s_can1, CAN1, &config);
-    s_initialized = (result == CAN_STATUS_OK) ? 1U : 0U;
-    return result;
+    if (result != CAN_STATUS_OK)
+    {
+        /* Do not leave the peripheral clock enabled after a failed init. */
+        LL_APB1_GRP1_DisableClock(LL_APB1_GRP1_PERIPH_CAN1);
+        s_can1.initialized = 0U;
+        s_initialized = 0U;
+        return result;
+    }
+
+    s_initialized = 1U;
+    return CAN_STATUS_OK;
 }
 
-/** @brief 请求 CAN1 进入初始化模式。 */
+/**
+ * @brief 停止 CAN1 并关闭 CAN1 外设时钟。
+ * @return can_status_t
+ * @retval CAN_STATUS_OK 控制器已停止，外设时钟已关闭。
+ * @retval CAN_STATUS_ERROR_STATE CAN 尚未初始化。
+ * @retval CAN_STATUS_ERROR_TIMEOUT 控制器未能进入初始化模式，时钟保持开启。
+ */
 can_status_t BSP_CAN_DeInit(void)
 {
     can_status_t result;
@@ -141,11 +156,15 @@ can_status_t BSP_CAN_DeInit(void)
     }
 
     result = CAN_BxCAN_Stop(&s_can1);
-    if (result == CAN_STATUS_OK)
+    if (result != CAN_STATUS_OK)
     {
-        s_initialized = 0U;
+        return result;
     }
-    return result;
+
+    LL_APB1_GRP1_DisableClock(LL_APB1_GRP1_PERIPH_CAN1);
+    s_initialized = 0U;
+
+    return CAN_STATUS_OK;
 }
 
 /** @brief 通过 bxCAN 发送一帧报文。 */
