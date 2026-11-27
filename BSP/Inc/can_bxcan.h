@@ -64,15 +64,21 @@ can_status_t CAN_BxCAN_Init(can_bxcan_t *driver,
 /**
  * @brief 停止 bxCAN 控制器并请求进入初始化模式。
  * @param[in,out] driver 已初始化的驱动句柄。
- * @return can_status_t 操作结果。
+ * @return can_status_t
+ * @retval CAN_STATUS_OK 控制器已进入初始化模式。
+ * @retval CAN_STATUS_ERROR_STATE 驱动句柄无效或尚未初始化。
+ * @retval CAN_STATUS_ERROR_TIMEOUT 控制器未能在超时时间内进入初始化模式。
  */
 can_status_t CAN_BxCAN_Stop(can_bxcan_t *driver);
 
 /**
  * @brief 配置 bxCAN Filter Bank 0 的 32 位 ID 掩码过滤器。
  * @param[in,out] driver 已初始化的驱动句柄。
- * @param[in] filter ID 和 ID 掩码配置。
- * @return can_status_t 操作结果。
+ * @param[in] filter ID、ID 掩码和 ID 格式配置。
+ * @return can_status_t
+ * @retval CAN_STATUS_OK 过滤器配置成功。
+ * @retval CAN_STATUS_ERROR_PARAM 过滤器指针为空或 ID 配置超出范围。
+ * @retval CAN_STATUS_ERROR_STATE 驱动句柄无效或尚未初始化。
  * @note 当前后端只使用 Filter Bank 0，并将通过过滤的帧路由到 FIFO0。
  */
 can_status_t CAN_BxCAN_SetFilter(can_bxcan_t *driver,
@@ -123,7 +129,9 @@ can_status_t CAN_BxCAN_GetErrorStatus(can_bxcan_t *driver,
 /**
  * @brief 清除 bxCAN FIFO0 溢出标志。
  * @param[in] driver 已初始化的驱动句柄。
- * @return can_status_t 操作结果。
+ * @return can_status_t
+ * @retval CAN_STATUS_OK 溢出标志已清除。
+ * @retval CAN_STATUS_ERROR_STATE 驱动句柄无效或尚未初始化。
  */
 can_status_t CAN_BxCAN_ClearFifo0Overrun(can_bxcan_t *driver);
 
