@@ -43,7 +43,7 @@ can_status_t BSP_CAN_Init(void);
 can_status_t BSP_CAN_InitWithMode(bsp_can_mode_t mode);
 
 /**
- * @brief 将 CAN1 控制器切换到初始化模式。
+ * @brief 停止 CAN1 并关闭 CAN1 外设时钟。
  * @return can_status_t 操作结果。
  */
 can_status_t BSP_CAN_DeInit(void);
@@ -53,6 +53,7 @@ can_status_t BSP_CAN_DeInit(void);
  * @param[in] frame 待发送报文。
  * @param[in] timeout_ms 发送超时时间，单位 ms，必须大于 0。
  * @return can_status_t 发送结果。
+ * @note 本接口轮询等待发送完成；当前驱动没有内部互斥锁，并发发送调用必须由上层串行化。
  */
 can_status_t BSP_CAN_Transmit(const can_frame_t *frame, uint32_t timeout_ms);
 
@@ -61,6 +62,7 @@ can_status_t BSP_CAN_Transmit(const can_frame_t *frame, uint32_t timeout_ms);
  * @param[out] frame 接收帧输出缓冲区。
  * @param[in] timeout_ms 等待时间；0 表示非阻塞接收。
  * @return can_status_t 接收结果。
+ * @note timeout_ms=0 时立即返回；非零时阻塞等待。当前 FIFO0 不支持多个上下文并发读取。
  */
 can_status_t BSP_CAN_Receive(can_frame_t *frame, uint32_t timeout_ms);
 
