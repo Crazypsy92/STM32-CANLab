@@ -47,7 +47,7 @@ typedef enum
     CAN_STATUS_ERROR_PROTOCOL = -7     /**< 接收到的控制器数据不符合预期格式。 */
 } can_status_t;
 
-/** @brief bxCAN 最后错误代码（LEC）解码值。 */
+/** @brief CAN 控制器报告的通用错误类别，与具体控制器寄存器编码无关。 */
 typedef enum
 {
     CAN_ERROR_CODE_NONE = 0,          /**< 无错误。 */
@@ -57,7 +57,7 @@ typedef enum
     CAN_ERROR_CODE_BIT_RECESSIVE = 4, /**< 发送隐性位时检测到显性位。 */
     CAN_ERROR_CODE_BIT_DOMINANT = 5,  /**< 发送显性位时检测到隐性位。 */
     CAN_ERROR_CODE_CRC = 6,           /**< CRC 错误。 */
-    CAN_ERROR_CODE_SOFTWARE = 7       /**< 软件设置的错误代码。 */
+    CAN_ERROR_CODE_OTHER = 7          /**< 未分类或控制器特有错误。 */
 } can_error_code_t;
 
 /** @brief Classical CAN 帧。 */
