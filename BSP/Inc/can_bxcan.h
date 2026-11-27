@@ -39,11 +39,22 @@ typedef struct
     uint8_t fifo_locked;     /**< FIFO 锁定模式：0=关闭，1=开启。 */
 } can_bxcan_config_t;
 
+/** @brief bxCAN 驱动生命周期状态。 */
+typedef uint8_t can_bxcan_state_t;
+enum
+{
+    CAN_BXCAN_STATE_UNINITIALIZED = 0U, /**< 尚未初始化。 */
+    CAN_BXCAN_STATE_INITIALIZING,       /**< 正在执行初始化或停止操作。 */
+    CAN_BXCAN_STATE_READY,              /**< 初始化完成，可以收发。 */
+    CAN_BXCAN_STATE_STOPPED,            /**< 已停止，允许重新初始化。 */
+    CAN_BXCAN_STATE_FAULT               /**< 初始化或停止过程发生故障。 */
+};
+
 /** @brief bxCAN 驱动实例句柄。 */
 typedef struct
 {
-    CAN_TypeDef *instance; /**< bxCAN 外设寄存器基地址，例如 CAN1。 */
-    uint8_t initialized;   /**< 驱动初始化标志，1=已初始化。 */
+    CAN_TypeDef *instance;   /**< bxCAN 外设寄存器基地址，例如 CAN1。 */
+    can_bxcan_state_t state; /**< 当前驱动生命周期状态。 */
 } can_bxcan_t;
 
 /**
