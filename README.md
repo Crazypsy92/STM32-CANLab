@@ -4,7 +4,7 @@ A bare-metal Classical CAN 2.0 test platform for STM32F103C8T6. The project uses
 
 The initial firmware starts in **silent internal loopback mode**. It cycles through standard/extended data frames and standard/extended remote frames, with DLC values from 0 to 8. This checks the MCU-side controller path before connecting a physical CAN transceiver or a second node.
 
-> Hardware status: project files and the CAN BSP have been added, but compilation, board flashing and physical CAN-bus validation have not yet been reported. See [TEST_REPORT.md](TEST_REPORT.md).
+> Verification status: ARM GCC Debug and Release builds pass in GitHub Actions. Firmware flashing, on-board silent-loopback verification and physical CAN-bus validation are still pending. See [TEST_REPORT.md](TEST_REPORT.md).
 
 ## 1. Hardware baseline
 
