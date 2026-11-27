@@ -39,7 +39,7 @@ The CAN transceiver is an external physical-layer component between PB8/PB9 and 
 
 ### Application
 
-`app_can_test.c` generates test frames, sends them and checks loopback results. It observes the public BSP API and exposes counters through `g_can_test_stats`.
+`app_can_test.c` generates test frames, sends them and checks loopback results. Its lifecycle is explicit (`RESET`, `INITIALIZING`, `RUNNING`, `ERROR`); the task only executes in `RUNNING`. It observes the public BSP API and exposes counters through the volatile `g_can_test_stats` object.
 
 ## Current constraints
 
