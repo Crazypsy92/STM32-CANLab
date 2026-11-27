@@ -12,7 +12,7 @@ This project uses CAN1 partial remap 2 on STM32F103C8T6:
 
 PB8/PB9 are selected to avoid the default PA11/PA12 mapping, which overlaps the USB data pins on common STM32F103C8T6 boards.
 
-The firmware configures the CAN remap in `BSP/Src/bsp_can.c`. The remap changes only the CAN_REMAP field so the existing SWD setting is preserved.
+The firmware configures the CAN remap in `BSP/Src/bsp_can.c`. Because SWJ_CFG is write-only on STM32F1, the remap operation explicitly reapplies JTAG-disabled / SWD-enabled configuration.
 
 ## Physical bus topology
 
@@ -38,7 +38,7 @@ GND -------------------------- GND              |                 |
 
 ## Internal loopback versus normal mode
 
-The default `BSP_CAN_MODE_LOOPBACK` mode routes transmitted frames back to the controller receive path internally. It is useful for checking the MCU firmware without a transceiver or second node, but it does not validate the physical bus.
+The default `BSP_CAN_MODE_SILENT_LOOPBACK` mode routes transmitted frames back to the controller receive path internally while keeping the physical CAN_TX output recessive. It is useful for checking the MCU firmware without a transceiver or second node, but it does not validate the physical bus.
 
 For physical communication, set:
 
