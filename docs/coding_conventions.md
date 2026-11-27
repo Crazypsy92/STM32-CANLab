@@ -57,3 +57,12 @@ Example: standard ID `0x120`, mask `0x7F0` accepts IDs `0x120` through `0x12F`.
 ## 6. Current scope
 
 The current backend supports Classical CAN, one 32-bit mask filter in Filter Bank 0, FIFO0 and polling TX/RX. Interrupt-driven operation, multiple filter banks, CAN FD and additional MCU backends are separate future work.
+
+
+## 7. Data types and state
+
+- Use `uint8_t`, `uint16_t` and `uint32_t` for fields with a defined protocol or register width.
+- For public structures shared across toolchains, prefer fixed-width storage fields plus named enum constants over compiler-sized enum members.
+- Use an explicit state enum when a module has distinct lifecycle states. Do not use a Boolean to represent more than two lifecycle conditions.
+- Update state only after the operation succeeds or fails; do not report a hardware transition before it is confirmed.
+- Apply `volatile` at the shared object boundary when required by asynchronous observation. Do not mark every structure member volatile by default.
