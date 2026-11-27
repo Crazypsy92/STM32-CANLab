@@ -20,9 +20,8 @@ typedef uint8_t can_id_type_t;
 enum
 {
     CAN_ID_STANDARD = 0U, /**< 标准帧标识符，11 bit。 */
-    CAN_ID_EXTENDED = 1, /**< 扩展帧标识符，29 bit。 */
-    CAN_ID_ANY = 2       /**< 仅用于接收过滤器，表示不限制 IDE 格式。 */
-
+    CAN_ID_EXTENDED = 1U, /**< 扩展帧标识符，29 bit。 */
+    CAN_ID_ANY = 2U        /**< 仅用于接收过滤器，表示不限制 IDE 格式。 */
 };
 
 /** @brief CAN 帧类型。 */
@@ -30,7 +29,7 @@ typedef uint8_t can_frame_type_t;
 enum
 {
     CAN_FRAME_DATA = 0U,   /**< 数据帧，data[] 携带有效载荷。 */
-    CAN_FRAME_REMOTE = 1  /**< 远程帧，不携带数据，DLC 表示请求的数据长度。 */
+    CAN_FRAME_REMOTE = 1U  /**< 远程帧，不携带数据，DLC 表示请求的数据长度。 */
 
 };
 
@@ -56,13 +55,13 @@ typedef uint8_t can_error_code_t;
 enum
 {
     CAN_ERROR_CODE_NONE = 0U,          /**< 无错误。 */
-    CAN_ERROR_CODE_STUFF = 1,         /**< 位填充错误。 */
-    CAN_ERROR_CODE_FORM = 2,          /**< 帧格式错误。 */
-    CAN_ERROR_CODE_ACK = 3,           /**< ACK 错误。 */
-    CAN_ERROR_CODE_BIT_RECESSIVE = 4, /**< 发送隐性位时检测到显性位。 */
-    CAN_ERROR_CODE_BIT_DOMINANT = 5,  /**< 发送显性位时检测到隐性位。 */
-    CAN_ERROR_CODE_CRC = 6,           /**< CRC 错误。 */
-    CAN_ERROR_CODE_OTHER = 7          /**< 未分类或控制器特有错误。 */
+    CAN_ERROR_CODE_STUFF = 1U,         /**< 位填充错误。 */
+    CAN_ERROR_CODE_FORM = 2U,          /**< 帧格式错误。 */
+    CAN_ERROR_CODE_ACK = 3U,           /**< ACK 错误。 */
+    CAN_ERROR_CODE_BIT_RECESSIVE = 4U, /**< 发送隐性位时检测到显性位。 */
+    CAN_ERROR_CODE_BIT_DOMINANT = 5U,  /**< 发送显性位时检测到隐性位。 */
+    CAN_ERROR_CODE_CRC = 6U,           /**< CRC 错误。 */
+    CAN_ERROR_CODE_NOT_REPORTED = 7U /**< 控制器未提供新的错误代码。 */
 
 };
 
