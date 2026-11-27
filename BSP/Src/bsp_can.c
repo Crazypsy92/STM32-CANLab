@@ -101,13 +101,11 @@ can_status_t BSP_CAN_InitWithMode(bsp_can_mode_t mode)
 
     if (s_initialized != 0U)
     {
-        result = CAN_BxCAN_DeInit(&s_can1);
+        result = BSP_CAN_DeInit();
         if (result != CAN_STATUS_OK)
         {
             return result;
         }
-
-        s_initialized = 0U;
     }
 
     configure_can_pins();
