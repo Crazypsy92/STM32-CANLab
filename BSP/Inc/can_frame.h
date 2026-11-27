@@ -1,63 +1,103 @@
-#ifndef __CAN_FRAME_H
-#define __CAN_FRAME_H
+/**
+ * @file    can_frame.h
+ * @brief   CAN 2.0 通用数据类型定义。
+ * @details 本文件不依赖具体 MCU，可供应用层和不同 CAN 控制器后端共同使用。
+ */
+#ifndef CAN_FRAME_H
+#define CAN_FRAME_H
 
 #include <stdint.h>
 
-#define CAN_FRAME_MAX_DATA_LEN 8U
+/** @brief 标准 CAN 标识符有效位掩码（11 bit）。 */
+#define CAN_STD_ID_MASK       (0x7FFUL)
+/** @brief 扩展 CAN 标识符有效位掩码（29 bit）。 */
+#define CAN_EXT_ID_MASK       (0x1FFFFFFFUL)
+/** @brief Classical CAN 单帧最大数据长度（字节）。 */
+#define CAN_MAX_DLC           (8U)
 
+/** @brief CAN 标识符格式。 */
 typedef enum
 {
-    CAN_ID_STANDARD = 0,
-    CAN_ID_EXTENDED = 1,
-    CAN_ID_ANY = 2
+    CAN_ID_STANDARD = 0, /**< 标准帧标识符，11 bit。 */
+    CAN_ID_EXTENDED = 1, /**< 扩展帧标识符，29 bit。 */
+    CAN_ID_ANY = 2       /**< 仅用于接收过滤器，表示不限制 IDE 格式。 */
 } can_id_type_t;
 
+/** @brief CAN 帧类型。 */
 typedef enum
 {
-    CAN_FRAME_DATA = 0,
-    CAN_FRAME_REMOTE = 1
+    CAN_FRAME_DATA = 0,   /**< 数据帧，data[] 携带有效载荷。 */
+    CAN_FRAME_REMOTE = 1  /**< 远程帧，不携带数据，DLC 表示请求的数据长度。 */
 } can_frame_type_t;
 
+/**
+ * @brief CAN API 返回状态。
+ * @note CAN_STATUS_NO_MESSAGE 是接收接口的正常状态，不代表硬件故障。
+ */
 typedef enum
 {
-    CAN_STATUS_OK = 0,
-    CAN_STATUS_NO_MESSAGE = 1,
-    CAN_STATUS_ERROR_PARAM = -1,
-    CAN_STATUS_ERROR_TIMEOUT = -2,
-    CAN_STATUS_ERROR_BUSY = -3,
-    CAN_STATUS_ERROR_STATE = -4,
-    CAN_STATUS_ERROR_TX = -5,
-    CAN_STATUS_ERROR_ARBITRATION = -6,
-    CAN_STATUS_ERROR_PROTOCOL = -7
+    CAN_STATUS_OK = 0,                 /**< 操作成功。 */
+    CAN_STATUS_NO_MESSAGE = 1,         /**< 非阻塞接收时 FIFO 当前为空。 */
+    CAN_STATUS_ERROR_PARAM = -1,       /**< 参数非法或超出协议范围。 */
+    CAN_STATUS_ERROR_TIMEOUT = -2,     /**< 等待操作超时。 */
+    CAN_STATUS_ERROR_BUSY = -3,        /**< 发送邮箱在指定时间内未空闲。 */
+    CAN_STATUS_ERROR_STATE = -4,       /**< 控制器未初始化或状态不允许该操作。 */
+    CAN_STATUS_ERROR_TX = -5,          /**< 发送失败，且不是单纯的仲裁丢失。 */
+    CAN_STATUS_ERROR_ARBITRATION = -6, /**< 本次发送请求报告仲裁丢失。 */
+    CAN_STATUS_ERROR_PROTOCOL = -7     /**< 接收到的控制器数据不符合预期格式。 */
 } can_status_t;
 
+/** @brief bxCAN 最后错误代码（LEC）解码值。 */
+typedef enum
+{
+    CAN_ERROR_CODE_NONE = 0,          /**< 无错误。 */
+    CAN_ERROR_CODE_STUFF = 1,         /**< 位填充错误。 */
+    CAN_ERROR_CODE_FORM = 2,          /**< 帧格式错误。 */
+    CAN_ERROR_CODE_ACK = 3,           /**< ACK 错误。 */
+    CAN_ERROR_CODE_BIT_RECESSIVE = 4, /**< 发送隐性位时检测到显性位。 */
+    CAN_ERROR_CODE_BIT_DOMINANT = 5,  /**< 发送显性位时检测到隐性位。 */
+    CAN_ERROR_CODE_CRC = 6,           /**< CRC 错误。 */
+    CAN_ERROR_CODE_SOFTWARE = 7       /**< 软件设置的错误代码。 */
+} can_error_code_t;
+
+/** @brief Classical CAN 帧。 */
 typedef struct
 {
-    uint32_t id;
-    can_id_type_t id_type;
-    can_frame_type_t frame_type;
-    uint8_t dlc;
-    uint8_t data[CAN_FRAME_MAX_DATA_LEN];
+    uint32_t id;                 /**< CAN ID；范围由 id_type 决定。 */
+    can_id_type_t id_type;       /**< 标准 11 bit 或扩展 29 bit。 */
+    can_frame_type_t frame_type; /**< 数据帧或远程帧。 */
+    uint8_t dlc;                 /**< 数据长度代码，范围 0..8；远程帧表示请求长度。 */
+    uint8_t data[CAN_MAX_DLC];   /**< 数据帧有效载荷；远程帧忽略此数组。 */
 } can_frame_t;
 
-/* One 32-bit mask filter is exposed initially; IDE is matched automatically
- * for STANDARD or EXTENDED. CAN_ID_ANY accepts both formats. */
+/**
+ * @brief CAN 接收 ID 掩码过滤器。
+ *
+ * @details 对每一个 ID 位：
+ *          - id_mask 对应位为 1：该位必须与 id 对应位相同；
+ *          - id_mask 对应位为 0：该位不参与比较（don't care）。
+ *
+ *          CAN_ID_STANDARD / CAN_ID_EXTENDED 同时要求 IDE 格式匹配；
+ *          CAN_ID_ANY 接收任意 ID 和 IDE 格式。
+ *          当前 bxCAN 后端不对 RTR 位单独过滤。
+ */
 typedef struct
 {
-    uint32_t id;
-    uint32_t mask;
-    can_id_type_t id_type;
+    uint32_t id;             /**< 期望匹配的 CAN ID。 */
+    uint32_t id_mask;        /**< ID 比较掩码；1=比较，0=忽略。 */
+    can_id_type_t id_type;   /**< 匹配的 ID 格式，或 CAN_ID_ANY。 */
 } can_filter_t;
 
+/** @brief CAN 控制器错误状态快照。 */
 typedef struct
 {
-    uint16_t tec;
-    uint16_t rec;
-    uint8_t last_error_code;
-    uint8_t error_warning;
-    uint8_t error_passive;
-    uint8_t bus_off;
-    uint8_t fifo0_overrun;
+    uint16_t tec;                     /**< 发送错误计数器（TEC）当前可读值。 */
+    uint16_t rec;                     /**< 接收错误计数器（REC）。 */
+    can_error_code_t last_error_code; /**< 最后错误代码（LEC）。 */
+    uint8_t error_warning;            /**< 错误警告状态，1=已进入 Error Warning。 */
+    uint8_t error_passive;            /**< 被动错误状态，1=已进入 Error Passive。 */
+    uint8_t bus_off;                  /**< Bus-Off 状态，1=已进入 Bus-Off。 */
+    uint8_t fifo0_overrun;            /**< FIFO0 溢出标志，1=检测到溢出。 */
 } can_error_status_t;
 
-#endif /* __CAN_FRAME_H */
+#endif /* CAN_FRAME_H */
