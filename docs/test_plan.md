@@ -4,7 +4,7 @@
 
 1. Configure and build the Debug preset.
 2. Flash the STM32F103C8T6.
-3. Keep `BSP_CAN_DEFAULT_MODE` set to loopback.
+3. Keep `BSP_CAN_DEFAULT_MODE` set to silent loopback.
 4. Watch `g_can_test_stats` in the debugger.
 5. Confirm that TX, RX and exact-match counters advance, with no mismatch.
 
