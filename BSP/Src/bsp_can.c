@@ -140,7 +140,7 @@ can_status_t BSP_CAN_DeInit(void)
         return CAN_STATUS_ERROR_STATE;
     }
 
-    result = CAN_BxCAN_DeInit(&s_can1);
+    result = CAN_BxCAN_Stop(&s_can1);
     if (result == CAN_STATUS_OK)
     {
         s_initialized = 0U;
