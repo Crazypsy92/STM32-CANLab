@@ -76,7 +76,7 @@ This is Classical CAN only. CAN FD is not supported. The first implementation us
 
 Public CAN functions and data structures are documented with Doxygen comments in their headers. The project uses named identifier masks (`CAN_STD_ID_MASK`, `CAN_EXT_ID_MASK`) and CMSIS register field definitions (`*_Pos`, `*_Msk`) rather than unexplained numeric limits and register shifts.
 
-The common frame and filter types are independent of STM32 headers. The `can_bxcan` backend remains STM32 bxCAN-specific, while `bsp_can` owns this board's clocks, pins and bit timing. See [coding conventions](docs/coding_conventions.md) and [acceptance filter mask examples](docs/can_filter_mask.md).
+The common frame, filter and error-category types are independent of STM32 headers. The `can_bxcan` backend remains STM32 bxCAN-specific, while `bsp_can` owns this board's clocks, pins and bit timing. bxCAN-specific LEC values are translated into common error categories. See [coding conventions](docs/coding_conventions.md) and [acceptance filter mask examples](docs/can_filter_mask.md).
 
 A typical filter for standard IDs `0x120` through `0x12F` is:
 
