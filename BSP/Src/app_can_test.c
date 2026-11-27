@@ -113,13 +113,17 @@ void App_CAN_Test_Init(void)
     can_status_t result;
 
     g_can_test_stats = (app_can_test_stats_t){0};
+    g_can_test_stats.state = APP_CAN_TEST_STATE_INITIALIZING;
+
     s_expected_valid = 0U;
     s_sequence = 0U;
     s_last_tx_tick = GetTick_ms() - 100U;
 
     result = BSP_CAN_Init();
     g_can_test_stats.init_status = (int32_t)result;
-    g_can_test_stats.initialized = (result == CAN_STATUS_OK) ? 1U : 0U;
+    g_can_test_stats.state = (result == CAN_STATUS_OK) ?
+                             APP_CAN_TEST_STATE_RUNNING :
+                             APP_CAN_TEST_STATE_ERROR;
 }
 
 /** @brief 执行一次轮询测试；每 100 ms 发送一帧并检查接收结果。 */
@@ -129,7 +133,7 @@ void App_CAN_Test_Task(void)
     can_frame_t received;
     can_error_status_t error_status;
 
-    if (g_can_test_stats.initialized == 0U)
+    if (g_can_test_stats.state != APP_CAN_TEST_STATE_RUNNING)
     {
         return;
     }
