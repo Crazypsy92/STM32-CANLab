@@ -3,11 +3,28 @@
 #include <stddef.h>
 #include <string.h>
 
-#define BXCAN_FILTER_BANK0       (1UL << 0U)
-#define BXCAN_IDE_BIT            (1UL << 2U)
-#define BXCAN_RTR_BIT            (1UL << 1U)
-#define BXCAN_TXRQ_BIT           (1UL << 0U)
-#define BXCAN_TME_MASK           (CAN_TSR_TME0 | CAN_TSR_TME1 | CAN_TSR_TME2)
+#define BXCAN_FILTER_BANK0       CAN_FA1R_FACT0
+
+/**
+ * @brief bxCAN 三个发送邮箱的状态掩码。
+ * @details 使用 CMSIS 定义的位掩码，避免手工计算 TSR 位偏移。
+ */
+typedef struct
+{
+    uint32_t tme;
+    uint32_t rqcp;
+    uint32_t txok;
+    uint32_t alst;
+    uint32_t terr;
+    uint32_t abrq;
+} can_bxcan_tx_flags_t;
+
+static const can_bxcan_tx_flags_t s_tx_flags[3] =
+{
+    {CAN_TSR_TME0, CAN_TSR_RQCP0, CAN_TSR_TXOK0, CAN_TSR_ALST0, CAN_TSR_TERR0, CAN_TSR_ABRQ0},
+    {CAN_TSR_TME1, CAN_TSR_RQCP1, CAN_TSR_TXOK1, CAN_TSR_ALST1, CAN_TSR_TERR1, CAN_TSR_ABRQ1},
+    {CAN_TSR_TME2, CAN_TSR_RQCP2, CAN_TSR_TXOK2, CAN_TSR_ALST2, CAN_TSR_TERR2, CAN_TSR_ABRQ2}
+};
 
 static can_status_t wait_register_bit(volatile uint32_t *reg,
                                       uint32_t mask,
@@ -28,16 +45,22 @@ static can_status_t wait_register_bit(volatile uint32_t *reg,
     return CAN_STATUS_ERROR_TIMEOUT;
 }
 
+/**
+ * @brief 将 CAN ID 编码到 bxCAN 32 位过滤器寄存器格式。
+ * @param[in] id CAN 标识符。
+ * @param[in] type 标准或扩展 ID 格式。
+ * @return 已按 bxCAN ID 字段位置对齐的寄存器值。
+ */
 static uint32_t encode_filter_id(uint32_t id, can_id_type_t type)
 {
     if (type == CAN_ID_STANDARD)
     {
-        return (id & 0x7FFU) << 21U;
+        return (id & CAN_STD_ID_MASK) << CAN_RI0R_STID_Pos;
     }
 
     if (type == CAN_ID_EXTENDED)
     {
-        return ((id & 0x1FFFFFFFU) << 3U) | BXCAN_IDE_BIT;
+        return ((id & CAN_EXT_ID_MASK) << CAN_RI0R_EXID_Pos) | CAN_RI0R_IDE;
     }
 
     return 0U;
@@ -56,25 +79,25 @@ static can_status_t set_filter_internal(CAN_TypeDef *can,
 
     if (filter->id_type == CAN_ID_STANDARD)
     {
-        if (filter->id > 0x7FFU || filter->mask > 0x7FFU)
+        if (filter->id > CAN_STD_ID_MASK || filter->id_mask > CAN_STD_ID_MASK)
         {
             return CAN_STATUS_ERROR_PARAM;
         }
         id_word = encode_filter_id(filter->id, CAN_ID_STANDARD);
-        mask_word = encode_filter_id(filter->mask, CAN_ID_STANDARD) | BXCAN_IDE_BIT;
+        mask_word = encode_filter_id(filter->id_mask, CAN_ID_STANDARD) | CAN_RI0R_IDE;
     }
     else if (filter->id_type == CAN_ID_EXTENDED)
     {
-        if (filter->id > 0x1FFFFFFFU || filter->mask > 0x1FFFFFFFU)
+        if (filter->id > CAN_EXT_ID_MASK || filter->id_mask > CAN_EXT_ID_MASK)
         {
             return CAN_STATUS_ERROR_PARAM;
         }
         id_word = encode_filter_id(filter->id, CAN_ID_EXTENDED);
-        mask_word = encode_filter_id(filter->mask, CAN_ID_EXTENDED);
+        mask_word = encode_filter_id(filter->id_mask, CAN_ID_EXTENDED);
     }
     else if (filter->id_type == CAN_ID_ANY)
     {
-        if (filter->id != 0U || filter->mask != 0U)
+        if (filter->id != 0U || filter->id_mask != 0U)
         {
             return CAN_STATUS_ERROR_PARAM;
         }
@@ -89,9 +112,9 @@ static can_status_t set_filter_internal(CAN_TypeDef *can,
     /* Filter bank 0: 32-bit identifier mask mode, assigned to FIFO0. */
     can->FMR |= CAN_FMR_FINIT;
     can->FA1R &= ~BXCAN_FILTER_BANK0;
-    can->FM1R &= ~BXCAN_FILTER_BANK0;
-    can->FS1R |= BXCAN_FILTER_BANK0;
-    can->FFA1R &= ~BXCAN_FILTER_BANK0;
+    can->FM1R &= ~CAN_FM1R_FBM0;
+    can->FS1R |= CAN_FS1R_FSC0;
+    can->FFA1R &= ~CAN_FFA1R_FFA0;
     can->sFilterRegister[0].FR1 = id_word;
     can->sFilterRegister[0].FR2 = mask_word;
     can->FA1R |= BXCAN_FILTER_BANK0;
@@ -102,7 +125,7 @@ static can_status_t set_filter_internal(CAN_TypeDef *can,
 
 static uint8_t validate_frame(const can_frame_t *frame)
 {
-    if (frame == NULL || frame->dlc > CAN_FRAME_MAX_DATA_LEN)
+    if (frame == NULL || frame->dlc > CAN_MAX_DLC)
     {
         return 0U;
     }
@@ -115,12 +138,12 @@ static uint8_t validate_frame(const can_frame_t *frame)
 
     if (frame->id_type == CAN_ID_STANDARD)
     {
-        return (frame->id <= 0x7FFU) ? 1U : 0U;
+        return (frame->id <= CAN_STD_ID_MASK) ? 1U : 0U;
     }
 
     if (frame->id_type == CAN_ID_EXTENDED)
     {
-        return (frame->id <= 0x1FFFFFFFU) ? 1U : 0U;
+        return (frame->id <= CAN_EXT_ID_MASK) ? 1U : 0U;
     }
 
     return 0U;
@@ -146,7 +169,11 @@ can_status_t CAN_BxCAN_Init(can_bxcan_t *driver,
         config->bs1_tq < 1U || config->bs1_tq > 16U ||
         config->bs2_tq < 1U || config->bs2_tq > 8U ||
         config->sjw_tq > config->bs2_tq ||
-        config->mode > CAN_BXCAN_MODE_SILENT_LOOPBACK)
+        config->mode < CAN_BXCAN_MODE_NORMAL ||
+        config->mode > CAN_BXCAN_MODE_SILENT_LOOPBACK ||
+        config->auto_bus_off > 1U ||
+        config->auto_retransmit > 1U ||
+        config->fifo_locked > 1U)
     {
         return CAN_STATUS_ERROR_PARAM;
     }
@@ -185,10 +212,11 @@ can_status_t CAN_BxCAN_Init(can_bxcan_t *driver,
         instance->MCR |= CAN_MCR_RFLM;
     }
 
-    btr = ((uint32_t)(config->prescaler - 1U) & 0x3FFU) |
-          ((uint32_t)(config->bs1_tq - 1U) << 16U) |
-          ((uint32_t)(config->bs2_tq - 1U) << 20U) |
-          ((uint32_t)(config->sjw_tq - 1U) << 24U);
+    /* Encode bit timing with CMSIS field positions and masks, not magic shifts. */
+    btr = (((uint32_t)(config->prescaler - 1U) << CAN_BTR_BRP_Pos) & CAN_BTR_BRP_Msk) |
+          (((uint32_t)(config->bs1_tq - 1U) << CAN_BTR_TS1_Pos) & CAN_BTR_TS1_Msk) |
+          (((uint32_t)(config->bs2_tq - 1U) << CAN_BTR_TS2_Pos) & CAN_BTR_TS2_Msk) |
+          (((uint32_t)(config->sjw_tq - 1U) << CAN_BTR_SJW_Pos) & CAN_BTR_SJW_Msk);
 
     if (config->mode == CAN_BXCAN_MODE_LOOPBACK ||
         config->mode == CAN_BXCAN_MODE_SILENT_LOOPBACK)
@@ -259,11 +287,7 @@ can_status_t CAN_BxCAN_Transmit(can_bxcan_t *driver,
     uint32_t tir;
     uint32_t low = 0U;
     uint32_t high = 0U;
-    uint32_t rqcp_mask;
-    uint32_t txok_mask;
-    uint32_t alst_mask;
-    uint32_t terr_mask;
-    uint32_t abrq_mask;
+    const can_bxcan_tx_flags_t *tx_flags;
     uint8_t mailbox_index;
     uint8_t i;
 
@@ -279,7 +303,7 @@ can_status_t CAN_BxCAN_Transmit(can_bxcan_t *driver,
     can = driver->instance;
     start = GetTick_ms();
 
-    while ((can->TSR & BXCAN_TME_MASK) == 0U)
+    while ((can->TSR & CAN_TSR_TME) == 0U)
     {
         if ((GetTick_ms() - start) >= timeout_ms)
         {
@@ -301,16 +325,13 @@ can_status_t CAN_BxCAN_Transmit(can_bxcan_t *driver,
         mailbox_index = 2U;
     }
 
-    rqcp_mask = 1UL << ((uint32_t)mailbox_index * 8U);
-    txok_mask = 1UL << (((uint32_t)mailbox_index * 8U) + 1U);
-    alst_mask = 1UL << (((uint32_t)mailbox_index * 8U) + 2U);
-    terr_mask = 1UL << (((uint32_t)mailbox_index * 8U) + 3U);
-    abrq_mask = 1UL << (((uint32_t)mailbox_index * 8U) + 7U);
+    tx_flags = &s_tx_flags[mailbox_index];
 
-    can->TSR = rqcp_mask; /* RQCPx is write-one-to-clear. */
+    /* RQCPx is write-one-to-clear; clear stale completion before reusing mailbox. */
+    can->TSR = tx_flags->rqcp;
 
     mailbox = &can->sTxMailBox[mailbox_index];
-    mailbox->TDTR = (uint32_t)frame->dlc;
+    mailbox->TDTR = (uint32_t)frame->dlc & CAN_TDT0R_DLC;
 
     if (frame->frame_type == CAN_FRAME_DATA)
     {
@@ -332,41 +353,41 @@ can_status_t CAN_BxCAN_Transmit(can_bxcan_t *driver,
 
     if (frame->id_type == CAN_ID_STANDARD)
     {
-        tir = (frame->id & 0x7FFU) << 21U;
+        tir = (frame->id & CAN_STD_ID_MASK) << CAN_TI0R_STID_Pos;
     }
     else
     {
-        tir = ((frame->id & 0x1FFFFFFFU) << 3U) | BXCAN_IDE_BIT;
+        tir = ((frame->id & CAN_EXT_ID_MASK) << CAN_TI0R_EXID_Pos) | CAN_TI0R_IDE;
     }
 
     if (frame->frame_type == CAN_FRAME_REMOTE)
     {
-        tir |= BXCAN_RTR_BIT;
+        tir |= CAN_RI0R_RTR;
     }
 
-    mailbox->TIR = tir | BXCAN_TXRQ_BIT;
+    mailbox->TIR = tir | CAN_TI0R_TXRQ;
 
-    while ((can->TSR & rqcp_mask) == 0U)
+    while ((can->TSR & tx_flags->rqcp) == 0U)
     {
         if ((GetTick_ms() - start) >= timeout_ms)
         {
-            can->TSR = abrq_mask;
+            can->TSR = tx_flags->abrq;
             return CAN_STATUS_ERROR_TIMEOUT;
         }
     }
 
     tsr = can->TSR;
-    can->TSR = rqcp_mask;
+    can->TSR = tx_flags->rqcp;
 
-    if ((tsr & txok_mask) != 0U)
+    if ((tsr & tx_flags->txok) != 0U)
     {
         return CAN_STATUS_OK;
     }
-    if ((tsr & alst_mask) != 0U)
+    if ((tsr & tx_flags->alst) != 0U)
     {
         return CAN_STATUS_ERROR_ARBITRATION;
     }
-    if ((tsr & terr_mask) != 0U)
+    if ((tsr & tx_flags->terr) != 0U)
     {
         return CAN_STATUS_ERROR_TX;
     }
@@ -401,9 +422,14 @@ can_status_t CAN_BxCAN_Receive(can_bxcan_t *driver,
 
     while ((can->RF0R & CAN_RF0R_FMP0) == 0U)
     {
-        if (timeout_ms == 0U || (GetTick_ms() - start) >= timeout_ms)
+        if (timeout_ms == 0U)
         {
             return CAN_STATUS_NO_MESSAGE;
+        }
+
+        if ((GetTick_ms() - start) >= timeout_ms)
+        {
+            return CAN_STATUS_ERROR_TIMEOUT;
         }
     }
 
@@ -415,27 +441,27 @@ can_status_t CAN_BxCAN_Receive(can_bxcan_t *driver,
 
     memset(frame, 0, sizeof(*frame));
 
-    if ((rir & BXCAN_IDE_BIT) != 0U)
+    if ((rir & CAN_RI0R_IDE) != 0U)
     {
         frame->id_type = CAN_ID_EXTENDED;
-        frame->id = (rir >> 3U) & 0x1FFFFFFFU;
+        frame->id = (rir >> CAN_RI0R_EXID_Pos) & CAN_EXT_ID_MASK;
     }
     else
     {
         frame->id_type = CAN_ID_STANDARD;
-        frame->id = (rir >> 21U) & 0x7FFU;
+        frame->id = (rir >> CAN_RI0R_STID_Pos) & CAN_STD_ID_MASK;
     }
 
-    frame->frame_type = ((rir & BXCAN_RTR_BIT) != 0U) ?
+    frame->frame_type = ((rir & CAN_RI0R_RTR) != 0U) ?
                         CAN_FRAME_REMOTE : CAN_FRAME_DATA;
 
-    if ((rdtr & 0x0FU) > CAN_FRAME_MAX_DATA_LEN)
+    if ((rdtr & CAN_RDT0R_DLC) > CAN_MAX_DLC)
     {
         can->RF0R = CAN_RF0R_RFOM0;
         return CAN_STATUS_ERROR_PROTOCOL;
     }
 
-    frame->dlc = (uint8_t)(rdtr & 0x0FU);
+    frame->dlc = (uint8_t)(rdtr & CAN_RDT0R_DLC);
 
     if (frame->frame_type == CAN_FRAME_DATA)
     {
@@ -476,16 +502,28 @@ can_status_t CAN_BxCAN_GetErrorStatus(can_bxcan_t *driver,
 
     status->tec = (uint16_t)((esr & CAN_ESR_TEC) >> 16U);
     status->rec = (uint16_t)((esr & CAN_ESR_REC) >> 24U);
-    status->last_error_code = (uint8_t)((esr >> 4U) & 0x07U);
+    status->last_error_code =
+        (can_error_code_t)((esr & CAN_ESR_LEC) >> CAN_ESR_LEC_Pos);
     status->error_warning = ((esr & CAN_ESR_EWGF) != 0U) ? 1U : 0U;
     status->error_passive = ((esr & CAN_ESR_EPVF) != 0U) ? 1U : 0U;
     status->bus_off = ((esr & CAN_ESR_BOFF) != 0U) ? 1U : 0U;
     status->fifo0_overrun = ((rf0r & CAN_RF0R_FOVR0) != 0U) ? 1U : 0U;
 
-    if (status->fifo0_overrun != 0U)
+    return CAN_STATUS_OK;
+}
+
+/**
+ * @brief 清除 bxCAN FIFO0 溢出标志（写 1 清除）。
+ * @param[in] driver 已初始化的驱动句柄。
+ * @return can_status_t 操作结果。
+ */
+can_status_t CAN_BxCAN_ClearFifo0Overrun(can_bxcan_t *driver)
+{
+    if ((driver == NULL) || (driver->instance == NULL) || (driver->initialized == 0U))
     {
-        driver->instance->RF0R = CAN_RF0R_FOVR0;
+        return CAN_STATUS_ERROR_STATE;
     }
 
+    driver->instance->RF0R = CAN_RF0R_FOVR0;
     return CAN_STATUS_OK;
 }
