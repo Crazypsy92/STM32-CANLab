@@ -50,8 +50,11 @@ static void configure_can_pins(void)
                              LL_APB2_GRP1_PERIPH_GPIOB);
 
     /* CAN1 partial remap 2: PB8=RX, PB9=TX.
-     * Change only CAN_REMAP to preserve the SWJ/SWD configuration. */
-    MODIFY_REG(AFIO->MAPR, AFIO_MAPR_CAN_REMAP, AFIO_MAPR_CAN_REMAP_REMAP2);
+     * SWJ_CFG is write-only on STM32F1, so re-apply NOJTAG while changing
+     * CAN_REMAP; this keeps SWD enabled and releases the JTAG-only pins. */
+    MODIFY_REG(AFIO->MAPR,
+               (AFIO_MAPR_CAN_REMAP | AFIO_MAPR_SWJ_CFG),
+               (AFIO_MAPR_CAN_REMAP_REMAP2 | AFIO_MAPR_SWJ_CFG_JTAGDISABLE));
 
     LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_9);
 
