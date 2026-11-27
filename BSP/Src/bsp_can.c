@@ -19,7 +19,6 @@
 #define BSP_CAN_BS2_TQ         (4U)
 
 static can_bxcan_t s_can1;
-static uint8_t s_initialized = 0U;
 
 /** @brief 将 BSP 工作模式映射为 bxCAN 后端模式。 */
 static can_status_t map_mode(bsp_can_mode_t mode, can_bxcan_mode_t *mapped)
@@ -99,7 +98,7 @@ can_status_t BSP_CAN_InitWithMode(bsp_can_mode_t mode)
         return result;
     }
 
-    if (s_initialized != 0U)
+    if (s_can1.state == CAN_BXCAN_STATE_READY)
     {
         result = BSP_CAN_DeInit();
         if (result != CAN_STATUS_OK)
@@ -130,13 +129,10 @@ can_status_t BSP_CAN_InitWithMode(bsp_can_mode_t mode)
     {
         /* Do not leave the peripheral clock enabled after a failed init. */
         LL_APB1_GRP1_DisableClock(LL_APB1_GRP1_PERIPH_CAN1);
-        s_can1.initialized = 0U;
-        s_initialized = 0U;
-        return result;
+                        return result;
     }
 
-    s_initialized = 1U;
-    return CAN_STATUS_OK;
+        return CAN_STATUS_OK;
 }
 
 /**
@@ -150,7 +146,7 @@ can_status_t BSP_CAN_DeInit(void)
 {
     can_status_t result;
 
-    if (s_initialized == 0U)
+    if (s_can1.state != CAN_BXCAN_STATE_READY)
     {
         return CAN_STATUS_ERROR_STATE;
     }
@@ -162,15 +158,14 @@ can_status_t BSP_CAN_DeInit(void)
     }
 
     LL_APB1_GRP1_DisableClock(LL_APB1_GRP1_PERIPH_CAN1);
-    s_initialized = 0U;
-
+    
     return CAN_STATUS_OK;
 }
 
 /** @brief 通过 bxCAN 发送一帧报文。 */
 can_status_t BSP_CAN_Transmit(const can_frame_t *frame, uint32_t timeout_ms)
 {
-    if (s_initialized == 0U)
+    if (s_can1.state != CAN_BXCAN_STATE_READY)
     {
         return CAN_STATUS_ERROR_STATE;
     }
@@ -180,7 +175,7 @@ can_status_t BSP_CAN_Transmit(const can_frame_t *frame, uint32_t timeout_ms)
 /** @brief 从 bxCAN FIFO0 读取一帧报文。 */
 can_status_t BSP_CAN_Receive(can_frame_t *frame, uint32_t timeout_ms)
 {
-    if (s_initialized == 0U)
+    if (s_can1.state != CAN_BXCAN_STATE_READY)
     {
         return CAN_STATUS_ERROR_STATE;
     }
@@ -190,7 +185,7 @@ can_status_t BSP_CAN_Receive(can_frame_t *frame, uint32_t timeout_ms)
 /** @brief 设置当前板级 CAN 接收过滤器。 */
 can_status_t BSP_CAN_SetFilter(const can_filter_t *filter)
 {
-    if (s_initialized == 0U)
+    if (s_can1.state != CAN_BXCAN_STATE_READY)
     {
         return CAN_STATUS_ERROR_STATE;
     }
@@ -200,21 +195,20 @@ can_status_t BSP_CAN_SetFilter(const can_filter_t *filter)
 /** @brief 读取 CAN 控制器错误状态。 */
 can_status_t BSP_CAN_GetErrorStatus(can_error_status_t *status)
 {
-    if (s_initialized == 0U)
+    if (s_can1.state != CAN_BXCAN_STATE_READY)
     {
         return CAN_STATUS_ERROR_STATE;
     }
     return CAN_BxCAN_GetErrorStatus(&s_can1, status);
 }
 
-/** @brief 获取当前板级 CAN 波特率。 */
 /**
  * @brief 清除 CAN FIFO0 溢出标志。
  * @return can_status_t 操作结果。
  */
 can_status_t BSP_CAN_ClearFifo0Overrun(void)
 {
-    if (s_initialized == 0U)
+    if (s_can1.state != CAN_BXCAN_STATE_READY)
     {
         return CAN_STATUS_ERROR_STATE;
     }
