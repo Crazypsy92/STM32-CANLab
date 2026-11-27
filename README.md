@@ -50,8 +50,8 @@ External CAN transceiver (physical layer, not part of MCU firmware)
 
 | File | Responsibility |
 | --- | --- |
-| `can_frame.h` | MCU-independent Classical CAN frame, filter, status and error types |
-| `can_bxcan.c/h` | bxCAN init, bit timing, TX mailboxes, RX FIFO0, 32-bit mask filter and error status |
+| `can_frame.h` | MCU-independent Classical CAN frame, ID masks, acceptance-filter types, status and error types |
+| `can_bxcan.c/h` | bxCAN init, bit timing, CMSIS register masks, TX mailboxes, RX FIFO0, 32-bit ID-mask filter and error status |
 | `bsp_can.c/h` | CAN1 clock, PB8/PB9 remap, board timing and public BSP entry points |
 | `app_can_test.c/h` | Loopback test traffic and debugger-visible counters |
 | `delay.c/h` | Shared SysTick millisecond timebase and DWT microsecond timebase |
@@ -71,6 +71,26 @@ The application uses only the BSP interface and frame types. It does not include
 - Automatic bus-off management enabled; automatic retransmission disabled by default for bounded test behavior.
 
 This is Classical CAN only. CAN FD is not supported. The first implementation uses polling; interrupt-driven RX/TX and multiple filter banks can be added in later stages.
+
+## 3.1 Public API and coding style
+
+Public CAN functions and data structures are documented with Doxygen comments in their headers. The project uses named identifier masks (`CAN_STD_ID_MASK`, `CAN_EXT_ID_MASK`) and CMSIS register field definitions (`*_Pos`, `*_Msk`) rather than unexplained numeric limits and register shifts.
+
+The common frame and filter types are independent of STM32 headers. The `can_bxcan` backend remains STM32 bxCAN-specific, while `bsp_can` owns this board's clocks, pins and bit timing. See [coding conventions](docs/coding_conventions.md) and [acceptance filter mask examples](docs/can_filter_mask.md).
+
+A typical filter for standard IDs `0x120` through `0x12F` is:
+
+```c
+const can_filter_t filter = {
+    .id = 0x120U,
+    .id_mask = 0x7F0U,
+    .id_type = CAN_ID_STANDARD
+};
+
+(void)BSP_CAN_SetFilter(&filter);
+```
+
+For `id_mask`, a bit value of 1 means compare the corresponding ID bit; 0 means ignore it.
 
 ## 4. Default silent loopback test
 
