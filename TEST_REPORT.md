@@ -14,15 +14,15 @@
 | bxCAN register masks | DONE | CMSIS `*_Pos`, `*_Msk` and named mailbox flag table |
 | Acceptance filter documentation | DONE | `id_mask` semantics and examples in `docs/can_filter_mask.md` |
 | Coding conventions | DONE | `docs/coding_conventions.md` and `.clang-format` |
-| ARM GCC Debug build | PASS | GitHub Actions Debug/Release workflow; 7,188 bytes Flash, 1,672 bytes RAM |
-| ARM GCC Release build | PASS | GitHub Actions Debug/Release workflow; 3,864 bytes Flash, 1,672 bytes RAM |
+| ARM GCC Debug build | PASS | GitHub Actions Debug/Release workflow; 7,196 bytes Flash, 1,672 bytes RAM |
+| ARM GCC Release build | PASS | GitHub Actions Debug/Release workflow; 3,868 bytes Flash, 1,672 bytes RAM |
 | Local loopback on STM32F103C8T6 | NOT TESTED | Requires board flashing and debugger observation |
 | Physical CAN bus | NOT TESTED | Requires transceiver and a second active CAN node |
 | CANH/CANL signal and termination | NOT TESTED | Requires physical bus measurement |
 
 ## Build verification
 
-The repository's GitHub Actions workflow successfully configured and built both Debug and Release with ARM GNU GCC 13.2.1, CMake and Ninja. [Run #42](https://github.com/Crazypsy92/STM32-CANLab/actions/runs/45951473291) completed without compiler warnings. The linker reported 7,188 B Flash / 1,672 B RAM for Debug and 3,864 B Flash / 1,672 B RAM for Release. These are build results only; they do not establish correct runtime behavior on the MCU.
+The repository's GitHub Actions workflow successfully configured and built both Debug and Release with ARM GNU GCC 13.2.1, CMake and Ninja. [Run #42](https://github.com/Crazypsy92/STM32-CANLab/actions/runs/45951473291) completed without compiler warnings. The linker reported 7,196 B Flash / 1,672 B RAM for Debug and 3,868 B Flash / 1,672 B RAM for Release. These are build results only; they do not establish correct runtime behavior on the MCU.
 
 ## First hardware acceptance
 
@@ -49,10 +49,11 @@ Do not mark physical CAN as passed based on internal loopback. Record the MCU bo
 ## Code quality refinement — 2026-11-27
 
 - Replaced the bxCAN Boolean initialization flag with an explicit lifecycle state: UNINITIALIZED, INITIALIZING, READY, STOPPING, STOPPED and FAULT.
+- Replaced the test application's initialization Boolean with RESET, INITIALIZING, RUNNING and ERROR states; the polling task runs only in RUNNING.
 - I/O operations now require the READY state; failed hardware transitions leave the handle in FAULT.
 - Public CAN frame ID/frame/error category fields use fixed-width storage types with named constants, avoiding implementation-defined enum member size in shared structures.
 - CAN test statistics use ordinary structure members and a volatile global object boundary.
 - Added a repository-wide C formatting profile in `.clang-format`.
-- Debug and Release builds passed in [GitHub Actions Run #58](https://github.com/Crazypsy92/STM32-CANLab/actions/runs/45952965661), with no compiler warnings.
-- Updated image sizes: Debug 7,188 B Flash / 1,672 B RAM; Release 3,864 B Flash / 1,672 B RAM.
+- Debug and Release builds passed in [GitHub Actions Run #63](https://github.com/Crazypsy92/STM32-CANLab/actions/runs/45953249323), with no compiler warnings.
+- Updated image sizes: Debug 7,196 B Flash / 1,672 B RAM; Release 3,868 B Flash / 1,672 B RAM.
 - Hardware validation is still pending; this report records build verification only.
