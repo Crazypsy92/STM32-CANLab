@@ -178,7 +178,7 @@ can_status_t CAN_BxCAN_Init(can_bxcan_t *driver,
         config->bs1_tq < 1U || config->bs1_tq > 16U ||
         config->bs2_tq < 1U || config->bs2_tq > 8U ||
         config->sjw_tq > config->bs2_tq ||
-        config->mode < CAN_BXCAN_MODE_NORMAL ||
+        (int32_t)config->mode < 0 ||
         config->mode > CAN_BXCAN_MODE_SILENT_LOOPBACK ||
         config->auto_bus_off > 1U ||
         config->auto_retransmit > 1U ||
