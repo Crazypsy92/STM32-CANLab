@@ -14,32 +14,32 @@
  */
 typedef struct
 {
-    volatile uint32_t initialized;              /**< BSP 初始化成功标志。 */
-    volatile int32_t init_status;                /**< BSP_CAN_Init() 返回状态。 */
-    volatile uint32_t tx_ok;                     /**< 发送成功次数。 */
-    volatile uint32_t tx_error;                  /**< 发送失败次数。 */
-    volatile uint32_t rx_ok;                     /**< 成功接收次数。 */
-    volatile uint32_t rx_match;                  /**< 收发内容匹配次数。 */
-    volatile uint32_t rx_mismatch;               /**< 收发内容不匹配次数。 */
-    volatile uint32_t last_tx_id;                /**< 最近一次发送帧 ID。 */
-    volatile uint32_t last_rx_id;                /**< 最近一次接收帧 ID。 */
-    volatile uint8_t last_tx_id_type;            /**< 最近一次发送帧 ID 格式。 */
-    volatile uint8_t last_tx_frame_type;         /**< 最近一次发送帧类型。 */
-    volatile uint8_t last_tx_dlc;                /**< 最近一次发送帧 DLC。 */
-    volatile uint8_t last_rx_id_type;            /**< 最近一次接收帧 ID 格式。 */
-    volatile uint8_t last_rx_frame_type;         /**< 最近一次接收帧类型。 */
-    volatile uint8_t last_rx_dlc;                /**< 最近一次接收帧 DLC。 */
-    volatile uint8_t last_rx_data[CAN_MAX_DLC];  /**< 最近一次接收的数据帧载荷。 */
-    volatile uint16_t tec;                       /**< 发送错误计数器。 */
-    volatile uint16_t rec;                       /**< 接收错误计数器。 */
-    volatile uint8_t error_warning;              /**< Error Warning 状态。 */
-    volatile uint8_t error_passive;               /**< Error Passive 状态。 */
-    volatile uint8_t bus_off;                    /**< Bus-Off 状态。 */
-    volatile uint8_t fifo0_overrun;               /**< FIFO0 溢出标志。 */
+    uint32_t initialized;              /**< BSP 初始化成功标志。 */
+    int32_t init_status;                /**< BSP_CAN_Init() 返回状态。 */
+    uint32_t tx_ok;                     /**< 发送成功次数。 */
+    uint32_t tx_error;                  /**< 发送失败次数。 */
+    uint32_t rx_ok;                     /**< 成功接收次数。 */
+    uint32_t rx_match;                  /**< 收发内容匹配次数。 */
+    uint32_t rx_mismatch;               /**< 收发内容不匹配次数。 */
+    uint32_t last_tx_id;                /**< 最近一次发送帧 ID。 */
+    uint32_t last_rx_id;                /**< 最近一次接收帧 ID。 */
+    uint8_t last_tx_id_type;            /**< 最近一次发送帧 ID 格式。 */
+    uint8_t last_tx_frame_type;         /**< 最近一次发送帧类型。 */
+    uint8_t last_tx_dlc;                /**< 最近一次发送帧 DLC。 */
+    uint8_t last_rx_id_type;            /**< 最近一次接收帧 ID 格式。 */
+    uint8_t last_rx_frame_type;         /**< 最近一次接收帧类型。 */
+    uint8_t last_rx_dlc;                /**< 最近一次接收帧 DLC。 */
+    uint8_t last_rx_data[CAN_MAX_DLC];  /**< 最近一次接收的数据帧载荷。 */
+    uint16_t tec;                       /**< 发送错误计数器。 */
+    uint16_t rec;                       /**< 接收错误计数器。 */
+    uint8_t error_warning;              /**< Error Warning 状态。 */
+    uint8_t error_passive;               /**< Error Passive 状态。 */
+    uint8_t bus_off;                    /**< Bus-Off 状态。 */
+    uint8_t fifo0_overrun;               /**< FIFO0 溢出标志。 */
 } app_can_test_stats_t;
 
 /** @brief CAN 回环测试统计信息，全局调试器观察入口。 */
-extern volatile app_can_test_stats_t g_can_test_stats;
+extern app_can_test_stats_t g_can_test_stats;
 
 /**
  * @brief 初始化 CAN 回环测试。
