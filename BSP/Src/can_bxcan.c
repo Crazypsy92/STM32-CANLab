@@ -266,8 +266,8 @@ can_status_t CAN_BxCAN_Init(can_bxcan_t *driver,
     return CAN_STATUS_OK;
 }
 
-/** @brief 请求 bxCAN 进入初始化模式。 */
-can_status_t CAN_BxCAN_DeInit(can_bxcan_t *driver)
+/** @brief 停止 bxCAN 控制器并请求进入初始化模式。 */
+can_status_t CAN_BxCAN_Stop(can_bxcan_t *driver)
 {
     if (driver == NULL || driver->instance == NULL || driver->initialized == 0U)
     {
