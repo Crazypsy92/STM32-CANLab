@@ -78,7 +78,7 @@ typedef struct
  *          - id_mask 对应位为 0：该位不参与比较（don't care）。
  *
  *          CAN_ID_STANDARD / CAN_ID_EXTENDED 同时要求 IDE 格式匹配；
- *          CAN_ID_ANY 接收任意 ID 和 IDE 格式。
+ *          CAN_ID_ANY 接收任意 ID 和 IDE 格式，此时 id 和 id_mask 必须都为 0。
  *          当前 bxCAN 后端不对 RTR 位单独过滤。
  */
 typedef struct
