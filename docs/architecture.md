@@ -55,6 +55,6 @@ The CAN transceiver is an external physical-layer component between PB8/PB9 and 
 
 - Public protocol fields use fixed-width integer types where their value range is known, avoiding compiler-specific enum storage sizes in shared frame structures.
 - Enum-like values remain named and documented; their storage type is explicit.
-- The bxCAN lifecycle uses explicit states: `UNINITIALIZED`, `INITIALIZING`, `READY`, `STOPPED` and `FAULT`. Only `READY` permits I/O operations.
+- The bxCAN lifecycle uses explicit states: `UNINITIALIZED`, `INITIALIZING`, `READY`, `STOPPING`, `STOPPED` and `FAULT`. Only `READY` permits I/O operations.
 - The application statistics object is volatile as a whole for debugger observation; its individual members are ordinary fields.
 - The repository uses one C formatting profile: four spaces, attached braces, right-aligned pointer declarators and a 100-column limit.
