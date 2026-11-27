@@ -63,8 +63,7 @@ static void configure_can_pins(void)
     LL_GPIO_Init(GPIOB, &tx);
 
     rx.Pin = LL_GPIO_PIN_8;
-    rx.Mode = LL_GPIO_MODE_INPUT;
-    rx.Pull = LL_GPIO_PULL_NO;
+    rx.Mode = LL_GPIO_MODE_FLOATING;
     LL_GPIO_Init(GPIOB, &rx);
 }
 
