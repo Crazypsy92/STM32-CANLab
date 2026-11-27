@@ -2,7 +2,7 @@
 
 A bare-metal Classical CAN 2.0 test platform for STM32F103C8T6. The project uses STM32 LL for clock, GPIO and alternate-function setup, CMake/Ninja for building, and a small bxCAN register-level backend for CAN controller operations.
 
-The initial firmware starts in **internal loopback mode**. It cycles through standard/extended data frames and standard/extended remote frames, with DLC values from 0 to 8. This checks the MCU-side controller path before connecting a physical CAN transceiver or a second node.
+The initial firmware starts in **silent internal loopback mode**. It cycles through standard/extended data frames and standard/extended remote frames, with DLC values from 0 to 8. This checks the MCU-side controller path before connecting a physical CAN transceiver or a second node.
 
 > Hardware status: project files and the CAN BSP have been added, but compilation, board flashing and physical CAN-bus validation have not yet been reported. See [TEST_REPORT.md](TEST_REPORT.md).
 
@@ -72,7 +72,7 @@ The application uses only the BSP interface and frame types. It does not include
 
 This is Classical CAN only. CAN FD is not supported. The first implementation uses polling; interrupt-driven RX/TX and multiple filter banks can be added in later stages.
 
-## 4. Default loopback test
+## 4. Default silent loopback test
 
 The default is selected in `BSP/Inc/bsp_can.h`:
 
