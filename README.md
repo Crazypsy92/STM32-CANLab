@@ -77,7 +77,7 @@ This is Classical CAN only. CAN FD is not supported. The first implementation us
 The default is selected in `BSP/Inc/bsp_can.h`:
 
 ```c
-#define BSP_CAN_DEFAULT_MODE BSP_CAN_MODE_LOOPBACK
+#define BSP_CAN_DEFAULT_MODE BSP_CAN_MODE_SILENT_LOOPBACK
 ```
 
 The application sends one frame every 100 ms and cycles through:
@@ -103,7 +103,7 @@ Watch `g_can_test_stats` in the debugger:
 
 For a healthy internal loopback run, `tx_ok`, `rx_ok` and `rx_match` should increase together, while `tx_error` and `rx_mismatch` remain zero.
 
-Internal loopback does **not** verify the transceiver, CANH/CANL wiring, termination, physical ACK, electrical signal quality or real-bus arbitration.
+Silent internal loopback keeps the physical CAN TX output recessive. It does **not** verify the transceiver, CANH/CANL wiring, termination, physical ACK, electrical signal quality or real-bus arbitration.
 
 ## 5. Physical CAN bus
 
