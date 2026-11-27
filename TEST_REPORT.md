@@ -20,7 +20,7 @@
 
 ## Build verification
 
-The repository's GitHub Actions workflow successfully configured and built both Debug and Release with ARM GNU GCC 13.2.1, CMake and Ninja. [Run #30](https://github.com/Crazypsy92/STM32-CANLab/actions/runs/45933909818) completed without compiler warnings. The linker reported 7,028 B Flash / 1,672 B RAM for Debug and 3,840 B Flash / 1,672 B RAM for Release. These are build results only; they do not establish correct runtime behavior on the MCU.
+The repository's GitHub Actions workflow successfully configured and built both Debug and Release with ARM GNU GCC 13.2.1, CMake and Ninja. [Run #34](https://github.com/Crazypsy92/STM32-CANLab/actions/runs/45934106201) completed without compiler warnings. The linker reported 7,028 B Flash / 1,672 B RAM for Debug and 3,840 B Flash / 1,672 B RAM for Release. These are build results only; they do not establish correct runtime behavior on the MCU.
 
 ## First hardware acceptance
 
