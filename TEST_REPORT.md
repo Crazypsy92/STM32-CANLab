@@ -5,11 +5,17 @@
 | Item | Status | Evidence |
 | --- | --- | --- |
 | Repository initialization | DONE | STM32-CANLab repository created |
-| Project skeleton migration | ADDED, NOT BUILD-VERIFIED | Source files copied from stm32f103-at24xx-i2c-bus and renamed |
-| CAN frame model and bxCAN BSP | ADDED, NOT BUILD-VERIFIED | BSP headers and sources committed |
+| Project skeleton migration | DONE | Source files copied from stm32f103-at24xx-i2c-bus and renamed |
+| CAN frame model and bxCAN BSP | DONE | BSP headers and sources committed |
+| ARM GCC Debug build | PASS | GitHub Actions run #6; 6,880 bytes Flash, 1,672 bytes RAM |
+| ARM GCC Release build | PASS | GitHub Actions run #6; 3,668 bytes Flash, 1,672 bytes RAM |
 | Local loopback on STM32F103C8T6 | NOT TESTED | Requires board flashing and debugger observation |
 | Physical CAN bus | NOT TESTED | Requires transceiver and a second active CAN node |
 | CANH/CANL signal and termination | NOT TESTED | Requires physical bus measurement |
+
+## Build verification
+
+The repository's GitHub Actions workflow successfully configured and built both Debug and Release with ARM GNU GCC 13.2.1, CMake and Ninja. The linker reported 6,880 B Flash / 1,672 B RAM for Debug and 3,668 B Flash / 1,672 B RAM for Release. These are build results only; they do not establish correct runtime behavior on the MCU.
 
 ## First hardware acceptance
 
